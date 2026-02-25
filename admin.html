@@ -1,0 +1,2436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart City Admin Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              blue: '#1E3A8A',
+              sky: '#0EA5E9',
+              orange: '#F97316',
+              green: '#16A34A',
+              red: '#DC2626'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --panel-bg: #ffffff;
+      --panel-border: #dbe4ef;
+      --panel-soft: #f8fbff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --focus-ring: #38bdf8;
+      --soft-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    }
+    html { scroll-behavior: smooth; }
+    html.reduce-motion { scroll-behavior: auto; }
+    body { background: linear-gradient(180deg, #edf3ff 0%, #f8fbff 35%, #f2f6fb 100%); color: var(--text-main); }
+    .elev-card { transition: transform .2s ease, box-shadow .2s ease; }
+    .elev-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15, 23, 42, .10); }
+    .demo-highlight { outline: 3px solid #16A34A; outline-offset: 2px; }
+    .focus-ring:focus-visible { outline: 3px solid #0EA5E9; outline-offset: 2px; }
+    main section { background: var(--panel-bg); border: 1px solid var(--panel-border) !important; box-shadow: var(--soft-shadow); }
+    main section { position: relative; overflow: hidden; }
+    main section::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #1E3A8A 0%, #0EA5E9 48%, #16A34A 100%);
+      opacity: 0.35;
+    }
+    main section h2,
+    main section h3 { letter-spacing: -0.01em; color: var(--text-main); }
+    .section-title-polish {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .2rem .6rem .2rem .15rem;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(30,58,138,.08), rgba(14,165,233,.08));
+    }
+    .section-icon-dot {
+      width: 1.55rem;
+      height: 1.55rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #dbeafe;
+      color: #1E3A8A;
+      font-size: .82rem;
+      font-weight: 700;
+      border: 1px solid #bfdbfe;
+    }
+    main section p,
+    main section span,
+    main section li,
+    main section td { color: var(--text-muted); }
+    button,
+    .rounded-lg,
+    .rounded-md { transition: all .18s ease; }
+    button:hover { transform: translateY(-1px); }
+    input,
+    select,
+    textarea {
+      border-color: #cbd5e1 !important;
+      background: #ffffff !important;
+      color: var(--text-main);
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+    table { border-radius: 14px; overflow: hidden; }
+    thead th { font-weight: 700; letter-spacing: 0.01em; }
+    .skip-link { position: absolute; left: 0; top: -100px; background: #1E3A8A; color: #fff; padding: 8px 12px; z-index: 60; border-radius: 0 0 8px 0; }
+    .skip-link:focus { top: 0; }
+    body.a11y-high-contrast { background: #020617 !important; color: #f8fafc !important; }
+    body.a11y-high-contrast .bg-white,
+    body.a11y-high-contrast .bg-slate-50,
+    body.a11y-high-contrast .bg-slate-100 { background: #0f172a !important; color: #f8fafc !important; border-color: #475569 !important; }
+    body.a11y-high-contrast .text-slate-900,
+    body.a11y-high-contrast .text-slate-800,
+    body.a11y-high-contrast .text-slate-700,
+    body.a11y-high-contrast .text-slate-600,
+    body.a11y-high-contrast .text-slate-500 { color: #e2e8f0 !important; }
+    body.a11y-large-text { font-size: 18px; }
+    body.a11y-large-text .text-xs { font-size: 0.82rem !important; }
+    body.a11y-large-text .text-sm { font-size: 1rem !important; }
+
+    @media (max-width: 1024px) {
+      main section { padding: 1rem !important; }
+      main section h2 { font-size: 1.2rem !important; }
+    }
+
+    @media (max-width: 640px) {
+      main .grid { gap: .75rem !important; }
+      #toast { left: 0.75rem; right: 0.75rem; top: auto; bottom: 0.75rem; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+  <a href="#overview" class="skip-link focus-ring">Skip to admin content</a>
+  <header class="bg-brand-blue text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#overview" class="flex items-center gap-3">
+        <img src="city-logo.jpg" alt="City government logo" class="h-10 w-10 rounded-full border-2 border-amber-400 bg-white object-cover" />
+        <div>
+          <p class="font-semibold leading-tight">Smart City Admin</p>
+          <p class="text-[11px] text-blue-200">Operations & Monitoring</p>
+        </div>
+      </a>
+      <div class="flex items-center gap-2">
+        <span id="sessionBadge" class="hidden sm:inline-flex px-2.5 py-1 rounded-md bg-blue-900 text-[11px]"></span>
+        <button id="logoutBtn" class="hidden sm:inline-flex rounded-md bg-red-600 px-3 py-2 text-xs hover:bg-red-500">Logout</button>
+        <button id="menuBtn" class="lg:hidden p-2 rounded-md hover:bg-blue-800" aria-label="Toggle admin navigation">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="fixed bottom-4 left-4 z-50">
+    <div class="rounded-xl border border-slate-200 bg-white shadow-lg p-3 w-64">
+      <p class="text-xs font-semibold text-slate-600">Accessibility</p>
+      <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+        <button id="toggleLargeTextBtn" class="focus-ring rounded-md bg-slate-100 px-2 py-1.5 hover:bg-slate-200">Large Text</button>
+        <button id="toggleContrastBtn" class="focus-ring rounded-md bg-slate-100 px-2 py-1.5 hover:bg-slate-200">High Contrast</button>
+        <button id="toggleMotionBtn" class="focus-ring rounded-md bg-slate-100 px-2 py-1.5 hover:bg-slate-200">Reduce Motion</button>
+        <button id="resetA11yBtn" class="focus-ring rounded-md bg-blue-100 text-brand-blue px-2 py-1.5 hover:bg-blue-200">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid lg:grid-cols-[240px_1fr] gap-6">
+      <aside>
+        <nav id="adminNav" class="hidden lg:block bg-white rounded-2xl border border-slate-200 shadow-sm p-3 space-y-1">
+          <a href="#overview" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Overview</a>
+          <a href="#analytics" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Analytics</a>
+          <a href="#cityPulseAdmin" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">City Pulse</a>
+          <a href="#emergencyAdmin" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Emergency Command</a>
+          <a href="#adminInbox" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Admin Inbox</a>
+          <a href="#finance" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Mayor Finance</a>
+          <a href="#review" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Review Queue</a>
+          <a href="#bookings" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Citizen Bookings</a>
+          <a href="#claims" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Claim Verify</a>
+          <a href="#insights" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Feedback Insights</a>
+          <a href="#suggestionHubAdmin" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Suggestion Hub</a>
+          <a href="#incidentDeskAdmin" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Incident Desk</a>
+          <a href="#slaAdmin" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">SLA Dashboard</a>
+          <a href="#followupDesk" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Follow-up Desk</a>
+          <a href="#queue" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Queue Monitor</a>
+          <a href="#verify" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Verification</a>
+          <a href="#schedule" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Schedule Config</a>
+          <a href="#announce" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Announcements</a>
+          <a href="#gallery" class="nav-link block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Design Gallery</a>
+        </nav>
+      </aside>
+
+      <main class="space-y-6">
+        <section id="overview" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Admin Operations Dashboard</h1>
+              <p class="text-slate-600 mt-1">Live-style controls for permits, queue, schedules, announcements, and citizen bookings.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button id="demoModeBtn" class="rounded-lg bg-brand-green text-white px-4 py-2 text-sm font-semibold hover:bg-green-700">Start Guided Demo</button>
+              <button id="demoAutofillBtn" class="rounded-lg bg-slate-700 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-600">Auto-Fill Demo Data</button>
+              <button id="exportBtn" class="rounded-lg bg-brand-blue text-white px-4 py-2 text-sm font-semibold hover:bg-blue-800">Export Report</button>
+              <button id="seedBtn" class="rounded-lg bg-brand-orange text-white px-4 py-2 text-sm font-semibold hover:bg-orange-600">Reset Demo Data</button>
+            </div>
+          </div>
+          <p id="demoStatus" class="mt-3 text-xs text-slate-500">Manager Demo Mode: idle</p>
+          <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-5">
+            <article class="elev-card rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs text-slate-500">Pending Reviews</p>
+              <p id="kpiPending" class="text-3xl font-bold text-brand-blue mt-1">0</p>
+            </article>
+            <article class="elev-card rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs text-slate-500">Checked-In</p>
+              <p id="kpiCheckin" class="text-3xl font-bold text-brand-green mt-1">0</p>
+            </article>
+            <article class="elev-card rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs text-slate-500">No-Shows</p>
+              <p id="kpiNoShow" class="text-3xl font-bold text-brand-red mt-1">0</p>
+            </article>
+            <article class="elev-card rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs text-slate-500">Published Announcements</p>
+              <p id="kpiAnnounce" class="text-3xl font-bold text-brand-orange mt-1">0</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="analytics" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold">Operations Analytics</h2>
+            <p class="text-xs text-slate-500">Auto-updates with queue/review/booking changes</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <canvas id="opsChart" height="120" aria-label="Operations analytics chart"></canvas>
+          </div>
+        </section>
+
+        <section id="cityPulseAdmin" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold">City Pulse Intelligence</h2>
+            <button id="refreshPulseAdminBtn" class="focus-ring rounded-md bg-slate-100 px-3 py-1.5 text-xs hover:bg-slate-200">Refresh Forecast</button>
+          </div>
+          <div class="grid md:grid-cols-3 gap-3 text-sm">
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-slate-500">Predicted Queue Surge</p>
+              <p id="adminPulseSurge" class="text-xl font-bold text-brand-orange">Medium</p>
+              <p class="text-xs text-slate-500 mt-1">Recommend opening an extra counter if surge is High.</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-slate-500">Auto-Recommendation</p>
+              <p id="adminPulseAction" class="text-base font-semibold text-brand-blue">Shift 1 verifier to queue desk.</p>
+              <p class="text-xs text-slate-500 mt-1">Based on waiting and follow-up volume.</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-slate-500">Citizen Sentiment Signal</p>
+              <p id="adminPulseSentiment" class="text-xl font-bold text-brand-green">Positive</p>
+              <p class="text-xs text-slate-500 mt-1">Derived from recent feedback scores.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="emergencyAdmin" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-end justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold">Emergency Operations Command Center</h2>
+            <span id="emergencyAdminStatus" class="text-xs rounded-full bg-slate-100 text-slate-700 px-3 py-1">Status: Inactive</span>
+          </div>
+          <div class="grid xl:grid-cols-2 gap-4">
+            <form id="emergencyCommandForm" class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+              <label class="flex items-center gap-2 text-sm font-medium">
+                <input id="emergencyActive" type="checkbox" />
+                Activate Emergency Operations Mode
+              </label>
+              <select id="emergencyLevel" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+                <option>Advisory</option>
+                <option>Alert</option>
+                <option>Critical</option>
+              </select>
+              <input id="emergencyTitleInput" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" placeholder="Emergency title" />
+              <textarea id="emergencyMessageInput" rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" placeholder="Emergency public advisory message"></textarea>
+              <input id="emergencyHotlineInput" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" placeholder="Emergency hotline" />
+              <button type="submit" class="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-semibold hover:bg-red-700">Publish Emergency Command</button>
+            </form>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <h3 class="font-semibold">Emergency Help Queue</h3>
+                <button id="syncEmergencyBtn" class="rounded-md bg-slate-200 px-3 py-1 text-xs hover:bg-slate-300">Sync Queue</button>
+              </div>
+              <ul id="emergencyQueueList" class="space-y-2 text-sm"></ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="adminInbox" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold">Admin Smart Inbox</h2>
+            <button id="markAdminNotifReadBtn" class="rounded-md bg-slate-100 px-3 py-1.5 text-xs hover:bg-slate-200">Mark all as read</button>
+          </div>
+          <ul id="adminNotifList" class="space-y-2 text-sm"></ul>
+        </section>
+
+        <section id="finance" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-end justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold">Mayor Finance & Audit Command Center</h2>
+            <span class="text-xs text-slate-500">Transparency, treasury, and fund allocation</span>
+          </div>
+
+          <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+            <article class="elev-card rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs text-slate-500">Total Collections</p>
+              <p id="fundCollected" class="text-2xl font-bold text-brand-blue mt-1">₱0</p>
+            </article>
+            <article class="elev-card rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs text-slate-500">Total Disbursed</p>
+              <p id="fundDisbursed" class="text-2xl font-bold text-brand-orange mt-1">₱0</p>
+            </article>
+            <article class="elev-card rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs text-slate-500">Reserve Fund</p>
+              <p id="fundReserve" class="text-2xl font-bold text-brand-green mt-1">₱0</p>
+            </article>
+            <article class="elev-card rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs text-slate-500">Audit Compliance</p>
+              <p id="fundCompliance" class="text-2xl font-bold text-brand-blue mt-1">0%</p>
+            </article>
+          </div>
+
+          <div class="grid xl:grid-cols-2 gap-5">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h3 class="font-semibold mb-2">Budget Allocation</h3>
+              <canvas id="budgetChart" height="130" aria-label="Budget allocation chart"></canvas>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h3 class="font-semibold mb-2">Monthly Cash Flow</h3>
+              <canvas id="cashflowChart" height="130" aria-label="Cash flow chart"></canvas>
+            </div>
+          </div>
+
+          <div class="grid xl:grid-cols-2 gap-5 mt-5">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h3 class="font-semibold mb-2">Treasury Accounts</h3>
+              <ul id="treasuryList" class="space-y-2 text-sm"></ul>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h3 class="font-semibold mb-2">Audit Reports</h3>
+              <ul id="auditList" class="space-y-2 text-sm"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="review" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold">Review Queue</h2>
+            <div class="grid sm:grid-cols-3 gap-2 w-full lg:w-auto">
+              <select id="reviewPermitFilter" class="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-slate-50">
+                <option value="all">All Permit Types</option>
+                <option>Building</option>
+                <option>Business</option>
+                <option>Temporary</option>
+              </select>
+              <select id="reviewStatusFilter" class="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-slate-50">
+                <option value="all">All Statuses</option>
+                <option>Pending</option>
+                <option>In Review</option>
+                <option>Approved</option>
+                <option>Revised</option>
+                <option>Denied</option>
+              </select>
+              <input id="reviewSearch" type="text" class="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-slate-50" placeholder="Search applicant" />
+            </div>
+          </div>
+          <div class="overflow-auto rounded-xl border border-slate-200">
+            <table class="min-w-full text-sm">
+              <thead class="bg-brand-blue text-white">
+                <tr>
+                  <th class="text-left p-3">ID</th>
+                  <th class="text-left p-3">Applicant</th>
+                  <th class="text-left p-3">Permit</th>
+                  <th class="text-left p-3">Submitted</th>
+                  <th class="text-left p-3">Status</th>
+                  <th class="text-left p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody id="reviewBody" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="bookings" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold">Citizen Face-to-Face & Document Bookings</h2>
+            <div class="flex items-center gap-2">
+              <a href="payment.html" class="rounded-lg bg-slate-700 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-600">Open Payment Ledger</a>
+              <button id="syncBookingsBtn" class="rounded-lg bg-brand-blue text-white px-4 py-2 text-sm font-semibold hover:bg-blue-800">Sync Bookings</button>
+            </div>
+          </div>
+          <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 text-sm mb-4">
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-slate-500">Critical Priority</p><p id="priorityCriticalCount" class="text-2xl font-bold text-red-600">0</p></article>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-slate-500">High Priority</p><p id="priorityHighCount" class="text-2xl font-bold text-brand-orange">0</p></article>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-slate-500">SLA Risk (&gt;12h)</p><p id="prioritySlaRiskCount" class="text-2xl font-bold text-brand-blue">0</p></article>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-slate-500">Top Route Now</p><p id="priorityTopRoute" class="text-sm font-semibold text-slate-700">No active booking</p></article>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 mb-4">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <h3 class="font-semibold">Priority Queue Routing Preview</h3>
+              <button id="autoAssignPriorityBtn" class="rounded-md bg-brand-green text-white px-3 py-1.5 text-xs font-semibold hover:bg-green-700">Auto-Assign Window by Priority</button>
+            </div>
+            <ul id="priorityQueuePreview" class="space-y-2 text-sm"></ul>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <h3 class="font-semibold">Bulk Booking Operations</h3>
+              <div class="flex flex-wrap gap-2 text-sm">
+                <select id="bulkBookingAction" class="rounded-lg border border-slate-300 bg-white px-3 py-2">
+                  <option value="">Select action</option>
+                  <option value="confirm">Confirm Selected</option>
+                  <option value="complete">Complete Selected</option>
+                  <option value="escalate">Escalate to Critical</option>
+                  <option value="assign">Auto-Assign Desk</option>
+                </select>
+                <button id="applyBulkBookingBtn" class="rounded-lg bg-brand-blue text-white px-4 py-2 font-semibold hover:bg-blue-800">Apply to Selected</button>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500">Tip: tick rows in the table, choose one action, then apply in one click.</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 mb-4">
+            <h3 class="font-semibold mb-2">Supervisor Override Console</h3>
+            <div class="grid md:grid-cols-[1.2fr_1fr_1.4fr_auto] gap-2 text-sm">
+              <input id="overrideBookingRef" class="rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Booking Ref (e.g., PAY-123456)" />
+              <select id="overridePriorityLevel" class="rounded-lg border border-slate-300 bg-white px-3 py-2">
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Normal">Normal</option>
+              </select>
+              <input id="overridePriorityReason" class="rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Supervisor reason (required)" />
+              <button id="applyPriorityOverrideBtn" class="rounded-lg bg-brand-blue text-white px-4 py-2 font-semibold hover:bg-blue-800">Apply</button>
+            </div>
+            <p class="mt-2 text-xs text-slate-500">Manual overrides are logged in booking metadata and take precedence in routing.</p>
+          </div>
+          <div class="rounded-xl border border-red-200 bg-red-50 p-4 mb-4">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <h3 class="font-semibold text-red-700">Escalation Queue (SLA Risk)</h3>
+              <span id="escalationQueueCount" class="text-xs rounded-full bg-red-100 text-red-700 px-2 py-1 font-semibold">0</span>
+            </div>
+            <ul id="escalationQueueList" class="space-y-2 text-sm"></ul>
+          </div>
+          <div class="overflow-auto rounded-xl border border-slate-200">
+            <table class="min-w-full text-sm">
+              <thead class="bg-brand-blue text-white">
+                <tr>
+                  <th class="text-left p-3"><input id="bulkSelectAllBookings" type="checkbox" aria-label="Select all bookings" /></th>
+                  <th class="text-left p-3">Ref</th>
+                  <th class="text-left p-3">Ticket ID</th>
+                  <th class="text-left p-3">Citizen</th>
+                  <th class="text-left p-3">Type</th>
+                  <th class="text-left p-3">Service / Document</th>
+                  <th class="text-left p-3">Schedule</th>
+                  <th class="text-left p-3">Priority</th>
+                  <th class="text-left p-3">Payment</th>
+                  <th class="text-left p-3">Status</th>
+                  <th class="text-left p-3">Timeline</th>
+                  <th class="text-left p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="citizenBookingsBody" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="claims" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-xl font-bold mb-3">Counter Claim Code Verification</h2>
+          <div class="grid md:grid-cols-[1fr_auto] gap-2">
+            <input id="claimSearchInput" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Enter claim code (CLM-xxxxxx) or ticket ID" />
+            <button id="verifyClaimBtn" class="rounded-lg bg-brand-blue text-white px-4 py-2 font-semibold hover:bg-blue-800">Verify</button>
+          </div>
+          <div id="claimVerifyResult" class="mt-3 text-sm text-slate-600">No verification yet.</div>
+        </section>
+
+        <section id="insights" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="text-xl font-bold">Citizen Feedback Insights</h2>
+            <span id="feedbackAverage" class="text-sm rounded-md bg-blue-50 text-brand-blue px-3 py-1 font-semibold">Average: N/A</span>
+          </div>
+          <ul id="feedbackInsightList" class="space-y-2 text-sm"></ul>
+        </section>
+
+        <section id="suggestionHubAdmin" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="text-xl font-bold">Citizen Suggestion Moderation</h2>
+            <button id="syncSuggestionsBtn" class="rounded-lg bg-brand-blue text-white px-4 py-2 text-sm font-semibold hover:bg-blue-800">Sync Suggestions</button>
+          </div>
+          <div id="suggestionAdminList" class="space-y-2 text-sm"></div>
+        </section>
+
+        <section id="incidentDeskAdmin" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="text-xl font-bold">Incident Desk</h2>
+            <button id="syncIncidentsBtn" class="rounded-lg bg-brand-blue text-white px-4 py-2 text-sm font-semibold hover:bg-blue-800">Sync Incidents</button>
+          </div>
+          <div id="incidentAdminList" class="space-y-2 text-sm"></div>
+        </section>
+
+        <section id="slaAdmin" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="text-xl font-bold">Service Level Dashboard</h2>
+            <span class="text-xs text-slate-500">Tracks delays and average closure time</span>
+          </div>
+          <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 text-sm">
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-slate-500">Open Follow-ups</p><p id="slaOpenFollowups" class="text-2xl font-bold text-brand-blue">0</p></article>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-slate-500">Open Incidents</p><p id="slaOpenIncidents" class="text-2xl font-bold text-brand-orange">0</p></article>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-slate-500">Open Suggestions</p><p id="slaOpenSuggestions" class="text-2xl font-bold text-brand-green">0</p></article>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-slate-500">Avg Resolve Time</p><p id="slaAvgResolve" class="text-2xl font-bold text-brand-blue">0 hrs</p></article>
+          </div>
+        </section>
+
+        <section id="followupDesk" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold">Citizen Follow-up Desk</h2>
+            <button id="syncFollowupsBtn" class="rounded-lg bg-brand-blue text-white px-4 py-2 text-sm font-semibold hover:bg-blue-800">Sync Follow-ups</button>
+          </div>
+          <div class="overflow-auto rounded-xl border border-slate-200">
+            <table class="min-w-full text-sm">
+              <thead class="bg-brand-blue text-white">
+                <tr>
+                  <th class="text-left p-3">Ticket ID</th>
+                  <th class="text-left p-3">Category</th>
+                  <th class="text-left p-3">Reference</th>
+                  <th class="text-left p-3">Message</th>
+                  <th class="text-left p-3">Status</th>
+                  <th class="text-left p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="followupDeskBody" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="queue" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-xl font-bold mb-4">Queue Monitor</h2>
+          <div class="overflow-auto rounded-xl border border-slate-200">
+            <table class="min-w-full text-sm">
+              <thead class="bg-brand-blue text-white">
+                <tr>
+                  <th class="text-left p-3">ID</th>
+                  <th class="text-left p-3">Time</th>
+                  <th class="text-left p-3">Name</th>
+                  <th class="text-left p-3">Service</th>
+                  <th class="text-left p-3">Status</th>
+                  <th class="text-left p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="queueBody" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="verify" class="grid xl:grid-cols-2 gap-6">
+          <article class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <h2 class="text-xl font-bold mb-4">Application Verification</h2>
+            <div class="space-y-3 text-sm">
+              <p><span class="font-semibold">Applicant:</span> Juan Dela Cruz</p>
+              <p><span class="font-semibold">Permit:</span> Building Permit</p>
+              <p><span class="font-semibold">Submission Date:</span> 2026-01-25</p>
+              <p><span class="font-semibold">Contact:</span> +63 912 345 6789</p>
+              <p><span class="font-semibold">Address:</span> 123 Sampaloc St, San Pedro</p>
+            </div>
+            <label for="verifyComment" class="block text-sm font-medium mt-4">Comments</label>
+            <textarea id="verifyComment" rows="4" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Enter reviewer notes"></textarea>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button data-verdict="Approved" class="verdict-btn rounded-lg bg-brand-green text-white px-4 py-2 font-semibold">Approve</button>
+              <button data-verdict="Revised" class="verdict-btn rounded-lg bg-brand-orange text-white px-4 py-2 font-semibold">Revise</button>
+              <button data-verdict="Denied" class="verdict-btn rounded-lg bg-brand-red text-white px-4 py-2 font-semibold">Reject</button>
+            </div>
+          </article>
+
+          <article class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <h2 class="text-xl font-bold mb-4">Uploaded Documents</h2>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-200">Site Plan.pdf <button class="rounded-md bg-brand-sky text-white px-3 py-1.5">Download</button></li>
+              <li class="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-200">Building Layout.pdf <button class="rounded-md bg-brand-sky text-white px-3 py-1.5">Download</button></li>
+              <li class="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-200">Certification.pdf <button class="rounded-md bg-brand-sky text-white px-3 py-1.5">Download</button></li>
+            </ul>
+          </article>
+        </section>
+
+        <section id="schedule" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-xl font-bold mb-4">Schedule Configuration</h2>
+          <form id="scheduleForm" class="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div>
+              <label class="text-sm">Day</label>
+              <select id="schedDay" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm">
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm">Start</label>
+              <input id="schedStart" type="time" value="09:00" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="text-sm">End</label>
+              <input id="schedEnd" type="time" value="17:00" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm" />
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="w-full rounded-lg bg-brand-green text-white px-4 py-2.5 font-semibold">Save Slot</button>
+            </div>
+          </form>
+          <ul id="scheduleList" class="mt-4 space-y-2 text-sm"></ul>
+        </section>
+
+        <section id="announce" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-xl font-bold mb-4">Admin Announcement Publisher</h2>
+          <form id="announceForm" class="grid md:grid-cols-[1fr_2fr_auto] gap-3">
+            <input id="annTitle" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm" placeholder="Title" />
+            <input id="annBody" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm" placeholder="Announcement content" />
+            <button class="rounded-lg bg-brand-blue text-white px-4 py-2 font-semibold" type="submit">Publish</button>
+          </form>
+          <ul id="adminAnnouncementList" class="mt-4 space-y-2 text-sm"></ul>
+        </section>
+
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-xl font-bold mb-4">Mayor Bulletin Publisher</h2>
+          <form id="mayorAnnounceForm" class="grid md:grid-cols-[1fr_2fr_auto] gap-3">
+            <input id="mayorAnnTitle" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm" placeholder="Mayor announcement title" />
+            <input id="mayorAnnBody" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm" placeholder="Update for citizens" />
+            <button class="rounded-lg bg-brand-green text-white px-4 py-2 font-semibold" type="submit">Publish</button>
+          </form>
+          <ul id="mayorAnnouncementAdminList" class="mt-4 space-y-2 text-sm"></ul>
+        </section>
+
+        <section id="gallery" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-bold">Admin Design Gallery (from your included photos)</h2>
+            <span class="text-xs text-slate-500">Directly using local PNG files</span>
+          </div>
+          <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <figure class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50"><img src="login_admin.png" alt="Admin login design" class="w-full h-44 object-cover"><figcaption class="p-3 text-sm">Login Admin</figcaption></figure>
+            <figure class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50"><img src="dashboard_page 2.png" alt="Admin dashboard design" class="w-full h-44 object-cover"><figcaption class="p-3 text-sm">Dashboard</figcaption></figure>
+            <figure class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50"><img src="review_queue_page 2.png" alt="Review queue design" class="w-full h-44 object-cover"><figcaption class="p-3 text-sm">Review Queue</figcaption></figure>
+            <figure class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50"><img src="queue_monitor_page 3.png" alt="Queue monitor design" class="w-full h-44 object-cover"><figcaption class="p-3 text-sm">Queue Monitor</figcaption></figure>
+            <figure class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50"><img src="application_verification_page 2.png" alt="Application verification design" class="w-full h-44 object-cover"><figcaption class="p-3 text-sm">Application Verification</figcaption></figure>
+            <figure class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50"><img src="schedule_configuration_page 2.png" alt="Schedule configuration design" class="w-full h-44 object-cover"><figcaption class="p-3 text-sm">Schedule Configuration</figcaption></figure>
+            <figure class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50"><img src="announcements_page 3.png" alt="Announcements admin design" class="w-full h-44 object-cover"><figcaption class="p-3 text-sm">Announcements</figcaption></figure>
+            <figure class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50"><img src="smart_city_dashboard_page 2.png" alt="Smart city dashboard design" class="w-full h-44 object-cover"><figcaption class="p-3 text-sm">Smart City Dashboard</figcaption></figure>
+            <figure class="rounded-xl overflow-hidden border border-slate-200 bg-slate-50"><img src="status_tracker_page 3.png" alt="Permit status tracker design" class="w-full h-44 object-cover"><figcaption class="p-3 text-sm">Status Tracker</figcaption></figure>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="bookingReasonModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 p-4" role="dialog" aria-modal="true" aria-labelledby="bookingReasonTitle">
+    <div class="mx-auto mt-8 max-h-[88vh] overflow-y-auto max-w-xl rounded-2xl bg-white border border-slate-200 shadow-xl p-6">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <h3 id="bookingReasonTitle" class="text-xl font-bold text-slate-900">Provide Reason</h3>
+        <button id="closeBookingReasonBtn" class="focus-ring rounded-md bg-slate-100 px-3 py-1.5 text-sm hover:bg-slate-200">Close</button>
+      </div>
+      <p id="bookingReasonMeta" class="text-sm text-slate-600 mb-3"></p>
+      <div id="declinePresetWrap" class="hidden mb-3">
+        <label for="declineReasonPreset" class="block text-sm font-medium mb-1">Preset decline reason</label>
+        <select id="declineReasonPreset" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm">
+          <option value="">Select preset reason</option>
+          <option value="Incomplete documentary requirements">Incomplete documentary requirements</option>
+          <option value="Invalid or mismatched applicant information">Invalid or mismatched applicant information</option>
+          <option value="Failed policy compliance review">Failed policy compliance review</option>
+          <option value="Outside service coverage or jurisdiction">Outside service coverage or jurisdiction</option>
+          <option value="Duplicate or already-processed request">Duplicate or already-processed request</option>
+          <option value="other">Other (specify)</option>
+        </select>
+      </div>
+      <textarea id="bookingReasonInput" rows="4" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Enter reason"></textarea>
+      <div class="mt-3 flex gap-2">
+        <button id="submitBookingReasonBtn" class="rounded-lg bg-brand-blue text-white px-4 py-2 text-sm font-semibold hover:bg-blue-800">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden fixed right-4 top-20 z-50 rounded-lg bg-slate-900 text-white px-4 py-3 text-sm shadow-xl"></div>
+
+  <script>
+    const storageKeys = {
+      review: 'smartCityAdminReview',
+      queue: 'smartCityAdminQueue',
+      schedule: 'smartCityAdminSchedule',
+      announce: 'smartCityAdminAnnouncements',
+      citizenBookings: 'smartCityCitizenBookings',
+      followups: 'smartCityCitizenFollowups',
+      mayorAnnouncements: 'smartCityMayorAnnouncements',
+      mayorFinance: 'smartCityMayorFinance',
+      notifications: 'smartCityNotifications',
+      feedback: 'smartCityCitizenFeedback',
+      suggestions: 'smartCityCitizenSuggestions',
+      incidents: 'smartCityCitizenIncidents',
+      emergencyState: 'smartCityEmergencyState',
+      emergencyHelp: 'smartCityEmergencyHelpTickets',
+      a11y: 'smartCityA11yPrefs'
+    };
+
+    const fallbackReview = [
+      { id: 'AP-0921', applicant: 'Juan D.', permit: 'Building', submitted: '2026-01-25', status: 'Pending' },
+      { id: 'AP-0922', applicant: 'Maria S.', permit: 'Business', submitted: '2026-01-24', status: 'In Review' },
+      { id: 'AP-0923', applicant: 'Luis P.', permit: 'Temporary', submitted: '2026-01-23', status: 'Approved' },
+      { id: 'AP-0924', applicant: 'Anne T.', permit: 'Business', submitted: '2026-01-23', status: 'Revised' }
+    ];
+
+    const fallbackQueue = [
+      { id: '#01', time: '08:00', name: 'Juan D.', service: 'Permit Pickup', status: 'Checked-In' },
+      { id: '#02', time: '08:15', name: 'Maria S.', service: 'Payment', status: 'Waiting' },
+      { id: '#03', time: '08:30', name: 'Luis P.', service: 'Inquiry', status: 'No-Show' },
+      { id: '#04', time: '08:45', name: 'Anne T.', service: 'Permit Submission', status: 'Waiting' }
+    ];
+
+    const fallbackSchedule = [
+      { day: 'Monday', start: '09:00', end: '17:00' },
+      { day: 'Tuesday', start: '09:00', end: '17:00' }
+    ];
+
+    const fallbackAnnouncements = [
+      { title: 'Holiday Notice', body: 'City Hall counter windows will close at 3PM on Friday.' },
+      { title: 'New Services', body: 'Online permit pre-check is now available for all business permit types.' }
+    ];
+
+    const fallbackCitizenBookings = [
+      { id: 'PAY-100101', ticketId: 'TKT-300101', name: 'Maria S.', type: 'f2f_payment', service: 'Business Permit', date: '2026-02-26', time: '10:00', status: 'Payment Submitted • Pending Admin Confirmation', paymentStatus: 'Paid Online', paymentMethod: 'Online (GCash)', windowNumber: 'Window 2' }
+    ];
+
+    const fallbackFollowups = [
+      { ticketId: 'TKT-200101', category: 'Permit Follow-up', referenceId: 'AP-0922', message: 'Checking current review timeline.', status: 'In Review', createdAt: '2026-02-23T09:30:00Z' },
+      { ticketId: 'TKT-200102', category: 'Payment Concern', referenceId: 'PAY-100101', message: 'Need receipt confirmation after payment.', status: 'Resolved', createdAt: '2026-02-23T11:20:00Z' }
+    ];
+
+    const fallbackMayorAnnouncements = [
+      { title: 'Mayor\'s Priority Program', content: 'This quarter focuses on transport modernization and flood control resilience.' },
+      { title: 'City Transparency Update', content: 'Monthly financial and audit summaries are now available in the city portal.' }
+    ];
+
+    const fallbackMayorFinance = {
+      funds: { collected: 12800000, disbursed: 9100000, reserve: 3700000, compliance: 96 },
+      allocations: [
+        { label: 'Health Services', value: 24 },
+        { label: 'Transport & Roads', value: 32 },
+        { label: 'Public Safety', value: 18 },
+        { label: 'Digital Services', value: 14 },
+        { label: 'Environment', value: 12 }
+      ],
+      cashflow: [
+        { month: 'Sep', inflow: 1800000, outflow: 1300000 },
+        { month: 'Oct', inflow: 2050000, outflow: 1450000 },
+        { month: 'Nov', inflow: 2200000, outflow: 1520000 },
+        { month: 'Dec', inflow: 1950000, outflow: 1680000 },
+        { month: 'Jan', inflow: 2300000, outflow: 1700000 },
+        { month: 'Feb', inflow: 2500000, outflow: 1780000 }
+      ],
+      treasury: [
+        { account: 'General Fund', amount: 2200000 },
+        { account: 'Infrastructure Trust', amount: 900000 },
+        { account: 'Emergency Reserve', amount: 600000 }
+      ],
+      audits: [
+        { period: 'Q4 2025', result: 'Passed', note: 'No major findings' },
+        { period: 'Jan 2026', result: 'Passed', note: 'Minor documentation gaps resolved' },
+        { period: 'Feb 2026', result: 'In Progress', note: 'Revenue reconciliation ongoing' }
+      ]
+    };
+
+    const el = {
+      menuBtn: document.getElementById('menuBtn'),
+      adminNav: document.getElementById('adminNav'),
+      toast: document.getElementById('toast'),
+      sessionBadge: document.getElementById('sessionBadge'),
+      logoutBtn: document.getElementById('logoutBtn'),
+
+      reviewPermitFilter: document.getElementById('reviewPermitFilter'),
+      reviewStatusFilter: document.getElementById('reviewStatusFilter'),
+      reviewSearch: document.getElementById('reviewSearch'),
+      reviewBody: document.getElementById('reviewBody'),
+      citizenBookingsBody: document.getElementById('citizenBookingsBody'),
+      syncBookingsBtn: document.getElementById('syncBookingsBtn'),
+      autoAssignPriorityBtn: document.getElementById('autoAssignPriorityBtn'),
+      overrideBookingRef: document.getElementById('overrideBookingRef'),
+      overridePriorityLevel: document.getElementById('overridePriorityLevel'),
+      overridePriorityReason: document.getElementById('overridePriorityReason'),
+      applyPriorityOverrideBtn: document.getElementById('applyPriorityOverrideBtn'),
+      priorityCriticalCount: document.getElementById('priorityCriticalCount'),
+      priorityHighCount: document.getElementById('priorityHighCount'),
+      prioritySlaRiskCount: document.getElementById('prioritySlaRiskCount'),
+      priorityTopRoute: document.getElementById('priorityTopRoute'),
+      priorityQueuePreview: document.getElementById('priorityQueuePreview'),
+      bulkSelectAllBookings: document.getElementById('bulkSelectAllBookings'),
+      bulkBookingAction: document.getElementById('bulkBookingAction'),
+      applyBulkBookingBtn: document.getElementById('applyBulkBookingBtn'),
+      escalationQueueCount: document.getElementById('escalationQueueCount'),
+      escalationQueueList: document.getElementById('escalationQueueList'),
+      followupDeskBody: document.getElementById('followupDeskBody'),
+      syncFollowupsBtn: document.getElementById('syncFollowupsBtn'),
+
+      queueBody: document.getElementById('queueBody'),
+      verifyComment: document.getElementById('verifyComment'),
+
+      scheduleForm: document.getElementById('scheduleForm'),
+      schedDay: document.getElementById('schedDay'),
+      schedStart: document.getElementById('schedStart'),
+      schedEnd: document.getElementById('schedEnd'),
+      scheduleList: document.getElementById('scheduleList'),
+
+      announceForm: document.getElementById('announceForm'),
+      annTitle: document.getElementById('annTitle'),
+      annBody: document.getElementById('annBody'),
+      adminAnnouncementList: document.getElementById('adminAnnouncementList'),
+      mayorAnnounceForm: document.getElementById('mayorAnnounceForm'),
+      mayorAnnTitle: document.getElementById('mayorAnnTitle'),
+      mayorAnnBody: document.getElementById('mayorAnnBody'),
+      mayorAnnouncementAdminList: document.getElementById('mayorAnnouncementAdminList'),
+
+      exportBtn: document.getElementById('exportBtn'),
+      seedBtn: document.getElementById('seedBtn'),
+      demoModeBtn: document.getElementById('demoModeBtn'),
+      demoAutofillBtn: document.getElementById('demoAutofillBtn'),
+      demoStatus: document.getElementById('demoStatus'),
+
+      kpiPending: document.getElementById('kpiPending'),
+      kpiCheckin: document.getElementById('kpiCheckin'),
+      kpiNoShow: document.getElementById('kpiNoShow'),
+      kpiAnnounce: document.getElementById('kpiAnnounce'),
+      opsChart: document.getElementById('opsChart'),
+      fundCollected: document.getElementById('fundCollected'),
+      fundDisbursed: document.getElementById('fundDisbursed'),
+      fundReserve: document.getElementById('fundReserve'),
+      fundCompliance: document.getElementById('fundCompliance'),
+      budgetChart: document.getElementById('budgetChart'),
+      cashflowChart: document.getElementById('cashflowChart'),
+      treasuryList: document.getElementById('treasuryList'),
+      auditList: document.getElementById('auditList'),
+      adminNotifList: document.getElementById('adminNotifList'),
+      markAdminNotifReadBtn: document.getElementById('markAdminNotifReadBtn'),
+      claimSearchInput: document.getElementById('claimSearchInput'),
+      verifyClaimBtn: document.getElementById('verifyClaimBtn'),
+      claimVerifyResult: document.getElementById('claimVerifyResult'),
+      feedbackAverage: document.getElementById('feedbackAverage'),
+      feedbackInsightList: document.getElementById('feedbackInsightList'),
+      syncSuggestionsBtn: document.getElementById('syncSuggestionsBtn'),
+      suggestionAdminList: document.getElementById('suggestionAdminList'),
+      syncIncidentsBtn: document.getElementById('syncIncidentsBtn'),
+      incidentAdminList: document.getElementById('incidentAdminList'),
+      slaOpenFollowups: document.getElementById('slaOpenFollowups'),
+      slaOpenIncidents: document.getElementById('slaOpenIncidents'),
+      slaOpenSuggestions: document.getElementById('slaOpenSuggestions'),
+      slaAvgResolve: document.getElementById('slaAvgResolve'),
+      refreshPulseAdminBtn: document.getElementById('refreshPulseAdminBtn'),
+      adminPulseSurge: document.getElementById('adminPulseSurge'),
+      adminPulseAction: document.getElementById('adminPulseAction'),
+      adminPulseSentiment: document.getElementById('adminPulseSentiment'),
+      emergencyCommandForm: document.getElementById('emergencyCommandForm'),
+      emergencyActive: document.getElementById('emergencyActive'),
+      emergencyLevel: document.getElementById('emergencyLevel'),
+      emergencyTitleInput: document.getElementById('emergencyTitleInput'),
+      emergencyMessageInput: document.getElementById('emergencyMessageInput'),
+      emergencyHotlineInput: document.getElementById('emergencyHotlineInput'),
+      emergencyAdminStatus: document.getElementById('emergencyAdminStatus'),
+      syncEmergencyBtn: document.getElementById('syncEmergencyBtn'),
+      emergencyQueueList: document.getElementById('emergencyQueueList'),
+      toggleLargeTextBtn: document.getElementById('toggleLargeTextBtn'),
+      toggleContrastBtn: document.getElementById('toggleContrastBtn'),
+      toggleMotionBtn: document.getElementById('toggleMotionBtn'),
+      resetA11yBtn: document.getElementById('resetA11yBtn')
+    };
+
+    const bookingReasonModal = document.getElementById('bookingReasonModal');
+    const bookingReasonTitle = document.getElementById('bookingReasonTitle');
+    const bookingReasonMeta = document.getElementById('bookingReasonMeta');
+    const bookingReasonInput = document.getElementById('bookingReasonInput');
+    const declinePresetWrap = document.getElementById('declinePresetWrap');
+    const declineReasonPreset = document.getElementById('declineReasonPreset');
+    const submitBookingReasonBtn = document.getElementById('submitBookingReasonBtn');
+    const closeBookingReasonBtn = document.getElementById('closeBookingReasonBtn');
+
+    const reasonFlow = {
+      action: null,
+      bookingIndex: null
+    };
+
+    const state = {
+      review: [],
+      queue: [],
+      schedule: [],
+      announcements: [],
+      citizenBookings: [],
+      followups: [],
+      mayorAnnouncements: [],
+      mayorFinance: null,
+      emergencyState: null,
+      emergencyHelp: []
+    };
+
+    const demo = { running: false, timers: [] };
+    const ADMIN_LAST_SECTION_KEY = 'smartCityLastSectionAdmin';
+    const selectedBookingRefs = new Set();
+
+    function showToast(message) {
+      el.toast.textContent = message;
+      el.toast.classList.remove('hidden');
+      setTimeout(() => el.toast.classList.add('hidden'), 2200);
+    }
+
+    function loadA11yPrefs() {
+      return JSON.parse(localStorage.getItem(storageKeys.a11y) || '{"largeText":false,"highContrast":false,"reduceMotion":false}');
+    }
+
+    function saveA11yPrefs(prefs) {
+      localStorage.setItem(storageKeys.a11y, JSON.stringify(prefs));
+    }
+
+    function applyA11yPrefs() {
+      const prefs = loadA11yPrefs();
+      document.body.classList.toggle('a11y-large-text', !!prefs.largeText);
+      document.body.classList.toggle('a11y-high-contrast', !!prefs.highContrast);
+      document.documentElement.classList.toggle('reduce-motion', !!prefs.reduceMotion);
+    }
+
+    function toggleA11yFlag(flag) {
+      const prefs = loadA11yPrefs();
+      prefs[flag] = !prefs[flag];
+      saveA11yPrefs(prefs);
+      applyA11yPrefs();
+    }
+
+    function renderCityPulseAdmin() {
+      const waiting = state.queue.filter((item) => item.status === 'Waiting').length;
+      const followupOpen = state.followups.filter((item) => (item.status || '').toLowerCase() !== 'resolved').length;
+      const pendingReviews = state.review.filter((item) => item.status === 'Pending').length;
+      const emergencyState = loadEmergencyState();
+      const emergencyOpen = loadEmergencyHelp().filter((item) => !['resolved', 'closed'].includes((item.status || '').toLowerCase())).length;
+      const workload = waiting * 2 + followupOpen + pendingReviews + emergencyOpen * 3;
+
+      el.adminPulseSurge.textContent = workload > 12 ? 'High' : workload > 7 ? 'Medium' : 'Low';
+      el.adminPulseSurge.className = `text-xl font-bold ${workload > 12 ? 'text-red-600' : workload > 7 ? 'text-brand-orange' : 'text-brand-green'}`;
+
+      if (emergencyState.active) {
+        el.adminPulseAction.textContent = 'Emergency mode active: dispatch responders first and keep one desk for critical walk-ins.';
+      } else if (workload > 12) {
+        el.adminPulseAction.textContent = 'Open +1 temporary queue counter and prioritize payment validation.';
+      } else if (workload > 7) {
+        el.adminPulseAction.textContent = 'Shift 1 verifier to queue desk for next 60 minutes.';
+      } else {
+        el.adminPulseAction.textContent = 'Maintain current staffing. Focus on follow-up resolution.';
+      }
+
+      const feedback = JSON.parse(localStorage.getItem(storageKeys.feedback) || '[]');
+      const avg = feedback.length ? feedback.reduce((sum, x) => sum + Number(x.rating || 0), 0) / feedback.length : 5;
+      el.adminPulseSentiment.textContent = avg >= 4 ? 'Positive' : avg >= 3 ? 'Neutral' : 'Needs Attention';
+      el.adminPulseSentiment.className = `text-xl font-bold ${avg >= 4 ? 'text-brand-green' : avg >= 3 ? 'text-brand-orange' : 'text-red-600'}`;
+    }
+
+    function renderSession() {
+      const sessionRaw = localStorage.getItem('smartCitySession');
+      if (!sessionRaw) return;
+      try {
+        const session = JSON.parse(sessionRaw);
+        if (!session?.role || !session?.email) return;
+        if (session.role === 'citizen') {
+          window.location.href = 'index.html';
+          return;
+        }
+        el.sessionBadge.textContent = `${session.role.toUpperCase()} · ${session.email}`;
+        el.sessionBadge.classList.remove('hidden');
+        el.logoutBtn.classList.remove('hidden');
+      } catch {
+        // ignore bad payload
+      }
+    }
+
+    function saveAdminLastSection(id) {
+      if (!id) return;
+      localStorage.setItem(ADMIN_LAST_SECTION_KEY, id);
+    }
+
+    function restoreAdminLastSection() {
+      if (window.location.hash) return;
+      const last = localStorage.getItem(ADMIN_LAST_SECTION_KEY);
+      if (!last) return;
+      const target = document.getElementById(last);
+      if (!target) return;
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 180);
+    }
+
+    function wireAdminSectionTracking() {
+      document.querySelectorAll('#adminNav a[href^="#"]').forEach((link) => {
+        link.addEventListener('click', () => {
+          const href = link.getAttribute('href') || '';
+          const id = href.slice(1);
+          if (id) saveAdminLastSection(id);
+        });
+      });
+
+      window.addEventListener('hashchange', () => {
+        const id = (window.location.hash || '').replace('#', '');
+        if (id) saveAdminLastSection(id);
+      });
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible?.target?.id) saveAdminLastSection(visible.target.id);
+      }, { rootMargin: '-30% 0px -50% 0px', threshold: [0.25, 0.5] });
+
+      document.querySelectorAll('main section[id]').forEach((section) => observer.observe(section));
+    }
+
+    function setDemoStatus(message) {
+      if (el.demoStatus) el.demoStatus.textContent = `Manager Demo Mode: ${message}`;
+    }
+
+    function clearDemoTimers() {
+      demo.timers.forEach((id) => clearTimeout(id));
+      demo.timers = [];
+    }
+
+    function clearDemoHighlights() {
+      ['overview', 'analytics', 'finance', 'review', 'bookings', 'followupDesk', 'queue', 'verify', 'schedule', 'announce', 'gallery']
+        .forEach((id) => document.getElementById(id)?.classList.remove('demo-highlight'));
+    }
+
+    function highlightSection(id) {
+      clearDemoHighlights();
+      const section = document.getElementById(id);
+      if (!section) return;
+      section.classList.add('demo-highlight');
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function loadOrSeed(key, fallback) {
+      const value = localStorage.getItem(key);
+      if (!value) {
+        localStorage.setItem(key, JSON.stringify(fallback));
+        return structuredClone(fallback);
+      }
+      try {
+        return JSON.parse(value);
+      } catch {
+        localStorage.setItem(key, JSON.stringify(fallback));
+        return structuredClone(fallback);
+      }
+    }
+
+    function loadNotifications() {
+      return JSON.parse(localStorage.getItem(storageKeys.notifications) || '[]');
+    }
+
+    function saveNotifications(items) {
+      localStorage.setItem(storageKeys.notifications, JSON.stringify(items));
+    }
+
+    function pushNotification(target, title, message, refId = '') {
+      const items = loadNotifications();
+      items.push({ id: `NTF-${Date.now().toString().slice(-7)}`, target, title, message, refId, read: false, createdAt: new Date().toISOString() });
+      saveNotifications(items);
+    }
+
+    function ensureBookingMeta() {
+      const items = JSON.parse(localStorage.getItem(storageKeys.citizenBookings) || '[]');
+      let updated = false;
+      items.forEach((item) => {
+        if (!item.ticketId) {
+          item.ticketId = `TKT-${Date.now().toString().slice(-6)}`;
+          updated = true;
+        }
+        if (!item.claimCode) {
+          item.claimCode = `CLM-${Date.now().toString().slice(-6)}`;
+          updated = true;
+        }
+      });
+      if (updated) localStorage.setItem(storageKeys.citizenBookings, JSON.stringify(items));
+    }
+
+    function formatPHP(amount) {
+      return `₱${Number(amount).toLocaleString()}`;
+    }
+
+    function save(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function getTimelineStage(item) {
+      if (item.status === 'Completed') return 3;
+      if ((item.paymentStatus || '').toLowerCase().includes('paid') || (item.paymentStatus || '').toLowerCase().includes('cash')) return 2;
+      if ((item.status || '').toLowerCase().includes('confirm')) return 1;
+      return 0;
+    }
+
+    function timelineMarkup(item) {
+      const stages = ['Requested', 'Confirmed', 'Paid', 'Completed'];
+      const stage = getTimelineStage(item);
+      return `<div class="flex flex-wrap gap-1">${stages
+        .map((label, index) => `<span class="px-2 py-0.5 rounded text-[10px] font-semibold ${index <= stage ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}">${label}</span>`)
+        .join('')}</div>`;
+    }
+
+    function getPriorityRoutingMeta(item) {
+      const m = item.priorityMeta || {};
+      const citizenType = String(m.citizenType || 'regular').toLowerCase();
+      const isUrgent = !!m.urgent;
+      const createdAtTs = new Date(item.createdAt || Date.now()).getTime();
+      const ageHours = Math.max(0, (Date.now() - createdAtTs) / (1000 * 60 * 60));
+
+      const typeWeight = {
+        regular: 0,
+        solo_parent: 2,
+        senior: 3,
+        pregnant: 3,
+        pwd: 4
+      };
+      const base = Number(typeWeight[citizenType] || 0);
+      const urgent = isUrgent ? 4 : 0;
+      const slaRisk = ageHours > 24 ? 4 : ageHours > 12 ? 3 : ageHours > 6 ? 1 : 0;
+      const status = String(item.status || '').toLowerCase();
+      const inactive = status.includes('completed') || status.includes('cancel') || status.includes('declined') || String(item.paymentStatus || '').toLowerCase().includes('refund');
+      const overrideLevel = m.manualOverride ? String(m.overrideLevel || '').trim() : '';
+      const overrideScoreMap = { Critical: 120, High: 90, Medium: 60, Normal: 30 };
+      const score = inactive ? 0 : overrideLevel ? (overrideScoreMap[overrideLevel] || 30) : base + urgent + slaRisk;
+      const level = overrideLevel || (score >= 8 ? 'Critical' : score >= 6 ? 'High' : score >= 3 ? 'Medium' : 'Normal');
+      const riskLabel = ageHours > 12 ? 'SLA Risk' : ageHours > 6 ? 'Watch' : 'Fresh';
+
+      return { score, level, riskLabel, ageHours, inactive, manualOverride: !!overrideLevel, overrideReason: m.overrideReason || '' };
+    }
+
+    function priorityChip(meta) {
+      const tone = meta.level === 'Critical'
+        ? 'bg-red-100 text-red-700'
+        : meta.level === 'High'
+          ? 'bg-orange-100 text-orange-700'
+          : meta.level === 'Medium'
+            ? 'bg-amber-100 text-amber-700'
+            : 'bg-slate-100 text-slate-700';
+      return `<span class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}">${meta.level}</span>`;
+    }
+
+    function riskChip(meta) {
+      const tone = meta.riskLabel === 'SLA Risk'
+        ? 'bg-red-100 text-red-700'
+        : meta.riskLabel === 'Watch'
+          ? 'bg-amber-100 text-amber-700'
+          : 'bg-green-100 text-green-700';
+      return `<span class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}">${meta.riskLabel}</span>`;
+    }
+
+    function renderPriorityQueuePanel(sortedBookings) {
+      const active = sortedBookings.filter((x) => !x.priority.inactive);
+      const critical = active.filter((x) => x.priority.level === 'Critical').length;
+      const high = active.filter((x) => x.priority.level === 'High').length;
+      const slaRisk = active.filter((x) => x.priority.riskLabel === 'SLA Risk').length;
+
+      el.priorityCriticalCount.textContent = String(critical);
+      el.priorityHighCount.textContent = String(high);
+      el.prioritySlaRiskCount.textContent = String(slaRisk);
+      el.priorityTopRoute.textContent = active.length ? `${active[0].id || 'N/A'} • ${active[0].name || 'Citizen'} (${active[0].priority.level})` : 'No active booking';
+
+      el.priorityQueuePreview.innerHTML = active.length
+        ? active.slice(0, 6).map((item) => `<li class="rounded-lg border border-slate-200 bg-white p-3"><strong>${item.id || 'N/A'}</strong> • ${item.name || 'Citizen'}<br><span class="text-slate-600 text-xs">${item.service || item.documentType || 'Service'} • ${item.date || 'N/A'} ${item.time || ''}</span><br><span class="text-[11px]">${priorityChip(item.priority)} ${riskChip(item.priority)} ${item.priority.manualOverride ? '<span class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-100 text-indigo-700">Supervisor Override</span>' : ''}</span></li>`).join('')
+        : '<li class="text-slate-500">No active items to route right now.</li>';
+    }
+
+    function renderEscalationQueue(sortedBookings) {
+      const escalations = sortedBookings
+        .filter((item) => !item.priority.inactive)
+        .filter((item) => item.priority.riskLabel === 'SLA Risk' || item.priority.level === 'Critical' || item.priority.ageHours >= 12)
+        .slice(0, 8);
+
+      el.escalationQueueCount.textContent = String(escalations.length);
+      el.escalationQueueList.innerHTML = escalations.length
+        ? escalations.map((item) => `<li class="rounded-lg border border-red-200 bg-white p-3"><strong>${item.id || 'N/A'}</strong> • ${item.name || 'Citizen'}<br><span class="text-xs text-slate-600">${item.service || item.documentType || 'Service'} • Waiting ${Math.floor(item.priority.ageHours)}h</span><br><span class="text-[11px]">${priorityChip(item.priority)} ${riskChip(item.priority)}</span></li>`).join('')
+        : '<li class="text-slate-500">No escalations right now. SLA looks healthy.</li>';
+    }
+
+    function assignDeskByPriorityLevel(level, position = 0) {
+      const deskPool = {
+        Critical: ['Priority Desk A', 'Window 1'],
+        High: ['Window 2', 'Window 3'],
+        Medium: ['Window 4'],
+        Normal: ['Window 5']
+      };
+      const pool = deskPool[level] || deskPool.Normal;
+      return pool[position % pool.length];
+    }
+
+    function applyBulkBookingAction() {
+      const action = el.bulkBookingAction.value;
+      if (!action) {
+        showToast('Please select a bulk action first.');
+        return;
+      }
+      if (!selectedBookingRefs.size) {
+        showToast('Select at least one booking from the table.');
+        return;
+      }
+
+      const bookings = JSON.parse(localStorage.getItem(storageKeys.citizenBookings) || '[]');
+      const targets = bookings.filter((item) => selectedBookingRefs.has(String(item.id || '')));
+      let changed = 0;
+
+      targets.forEach((item, idx) => {
+        const status = String(item.status || '').toLowerCase();
+        const isInactive = status.includes('cancel') || status.includes('declined') || String(item.paymentStatus || '').toLowerCase().includes('refund');
+        const paymentSettled = String(item.paymentStatus || '').toLowerCase().includes('paid') || String(item.paymentStatus || '').toLowerCase().includes('cash');
+        if (isInactive) return;
+
+        if (action === 'confirm' && paymentSettled) {
+          item.status = 'Confirmed by Admin';
+          changed += 1;
+        }
+        if (action === 'complete') {
+          item.status = 'Completed';
+          if (!paymentSettled) item.paymentStatus = 'Paid';
+          changed += 1;
+        }
+        if (action === 'escalate') {
+          if (!item.priorityMeta) item.priorityMeta = { citizenType: 'regular', urgent: false, note: '' };
+          item.priorityMeta.manualOverride = true;
+          item.priorityMeta.overrideLevel = 'Critical';
+          item.priorityMeta.overrideReason = 'Bulk escalation due to operational SLA risk';
+          item.priorityMeta.overrideBy = 'Bulk Ops';
+          item.priorityMeta.overrideAt = new Date().toISOString();
+          changed += 1;
+        }
+        if (action === 'assign') {
+          const priority = getPriorityRoutingMeta(item);
+          const desk = assignDeskByPriorityLevel(priority.level, idx);
+          item.priorityWindow = desk;
+          item.priorityRoutedAt = new Date().toISOString();
+          if (!String(item.paymentMethod || '').toLowerCase().includes('cash')) item.windowNumber = desk;
+          changed += 1;
+        }
+      });
+
+      localStorage.setItem(storageKeys.citizenBookings, JSON.stringify(bookings));
+      selectedBookingRefs.clear();
+      if (el.bulkSelectAllBookings) el.bulkSelectAllBookings.checked = false;
+      renderCitizenBookings();
+      pushNotification('admin', 'Bulk Booking Operation Applied', `${changed} booking(s) updated via bulk action: ${action}.`, 'BULK-BOOKINGS');
+      showToast(changed ? `Bulk action complete: ${changed} booking(s) updated.` : 'No eligible selected bookings were updated.');
+    }
+
+    function applySupervisorPriorityOverride() {
+      const ref = (el.overrideBookingRef.value || '').trim().toUpperCase();
+      const level = el.overridePriorityLevel.value;
+      const reason = (el.overridePriorityReason.value || '').trim();
+      if (!ref) {
+        showToast('Please provide a booking reference.');
+        return;
+      }
+      if (!reason) {
+        showToast('Supervisor reason is required for override.');
+        return;
+      }
+
+      const bookings = JSON.parse(localStorage.getItem(storageKeys.citizenBookings) || '[]');
+      const target = bookings.find((x) => String(x.id || '').toUpperCase() === ref);
+      if (!target) {
+        showToast('Booking reference not found.');
+        return;
+      }
+
+      if (!target.priorityMeta) {
+        target.priorityMeta = { citizenType: 'regular', urgent: false, note: '' };
+      }
+      target.priorityMeta.manualOverride = true;
+      target.priorityMeta.overrideLevel = level;
+      target.priorityMeta.overrideReason = reason;
+      target.priorityMeta.overrideBy = 'Supervisor';
+      target.priorityMeta.overrideAt = new Date().toISOString();
+
+      localStorage.setItem(storageKeys.citizenBookings, JSON.stringify(bookings));
+      renderCitizenBookings();
+      pushNotification('admin', 'Supervisor Override Applied', `Booking ${target.id} was set to ${level} priority.`, target.id);
+      showToast(`Override applied: ${target.id} → ${level}`);
+      el.overridePriorityReason.value = '';
+    }
+
+    function autoAssignWindowByPriority() {
+      const bookings = JSON.parse(localStorage.getItem(storageKeys.citizenBookings) || '[]');
+      if (!bookings.length) {
+        showToast('No bookings available for routing.');
+        return;
+      }
+
+      const candidates = bookings
+        .map((item, idx) => ({ item, idx, priority: getPriorityRoutingMeta(item) }))
+        .filter((x) => !x.priority.inactive)
+        .sort((a, b) => {
+          if (b.priority.score !== a.priority.score) return b.priority.score - a.priority.score;
+          return new Date(a.item.createdAt || 0).getTime() - new Date(b.item.createdAt || 0).getTime();
+        });
+
+      if (!candidates.length) {
+        showToast('No active bookings to route.');
+        return;
+      }
+
+      let assignedCount = 0;
+      candidates.forEach((entry) => {
+        const level = entry.priority.level;
+        const assignedDesk = assignDeskByPriorityLevel(level, assignedCount);
+
+        const target = bookings[entry.idx];
+        if (!target.priorityMeta) {
+          target.priorityMeta = { citizenType: 'regular', urgent: false, note: '' };
+        }
+        target.priorityMeta.score = entry.priority.score;
+        target.priorityMeta.level = level;
+        target.priorityWindow = assignedDesk;
+        target.priorityRoutedAt = new Date().toISOString();
+
+        const paymentMethod = String(target.paymentMethod || '').toLowerCase();
+        if (!paymentMethod.includes('cash')) {
+          target.windowNumber = assignedDesk;
+        }
+
+        assignedCount += 1;
+      });
+
+      localStorage.setItem(storageKeys.citizenBookings, JSON.stringify(bookings));
+      renderCitizenBookings();
+      pushNotification('admin', 'Priority Routing Completed', `${assignedCount} booking(s) were auto-assigned by priority engine.`, 'PRIORITY-ROUTING');
+      showToast(`Priority routing complete: ${assignedCount} booking(s) assigned.`);
+    }
+
+    function renderCitizenBookings() {
+      const raw = JSON.parse(localStorage.getItem(storageKeys.citizenBookings) || '[]');
+      state.citizenBookings = raw;
+      const ordered = raw
+        .map((item, idx) => ({ ...item, _index: idx, priority: getPriorityRoutingMeta(item) }))
+        .sort((a, b) => {
+          if (a.priority.inactive !== b.priority.inactive) return a.priority.inactive ? 1 : -1;
+          if (b.priority.score !== a.priority.score) return b.priority.score - a.priority.score;
+          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+        });
+
+      renderPriorityQueuePanel(ordered);
+      renderEscalationQueue(ordered);
+
+      el.citizenBookingsBody.innerHTML = ordered.length
+        ? ordered.map((item) => {
+          const type = item.type === 'document_request' ? 'Document Request' : 'F2F Payment';
+          const serviceLabel = item.type === 'document_request'
+            ? `${item.documentType || 'Document'} (${item.purpose || 'N/A'})`
+            : item.service;
+
+          const paymentSettled = (item.paymentStatus || '').toLowerCase().includes('paid') || (item.paymentStatus || '').toLowerCase().includes('cash');
+          const isCancelled = (item.status || '').toLowerCase().includes('cancel');
+          const isDeclined = (item.status || '').toLowerCase().includes('declined');
+          const isRefunded = (item.paymentStatus || '').toLowerCase().includes('refund');
+          const isInactive = isCancelled || isDeclined || isRefunded;
+          const isRefundRequest = (item.status || '').toLowerCase().includes('refund');
+          const confirmDisabled = paymentSettled ? '' : 'opacity-60 cursor-not-allowed';
+          const confirmLabel = paymentSettled ? 'Confirm' : 'Awaiting Payment';
+          const actionLock = isInactive ? 'opacity-60 cursor-not-allowed' : '';
+          const rowClass = isInactive ? 'bg-slate-100 text-slate-500' : 'bg-white';
+          const refId = String(item.id || '');
+          const checked = selectedBookingRefs.has(refId) ? 'checked' : '';
+
+          return `<tr class="${rowClass}">
+            <td class="p-3"><input type="checkbox" class="booking-select" data-booking-ref="${refId}" ${checked} /></td>
+            <td class="p-3">${item.id || '—'}</td>
+            <td class="p-3">${item.ticketId || 'N/A'}</td>
+            <td class="p-3">${item.name || '—'}</td>
+            <td class="p-3">${type}</td>
+            <td class="p-3">${serviceLabel || '—'}</td>
+            <td class="p-3">${item.date || '—'} ${item.time ? `at ${item.time}` : ''}</td>
+            <td class="p-3">${priorityChip(item.priority)}<br><span class="text-xs text-slate-500">${riskChip(item.priority)} • ${(item.priorityMeta?.citizenType || 'regular').replace('_', ' ')}</span>${item.priority.manualOverride ? `<br><span class="text-[11px] text-indigo-700">Override: ${item.priority.level}</span>` : ''}<br><span class="text-[11px] text-brand-blue">Desk: ${item.priorityWindow || 'Auto-pending'}</span></td>
+            <td class="p-3">${item.paymentStatus || 'Unpaid'}<br><span class="text-xs text-slate-500">${item.paymentMethod || 'Method N/A'} • ${item.windowNumber || 'Window TBA'}</span></td>
+            <td class="p-3">${item.status || 'Pending Admin Confirmation'}</td>
+            <td class="p-3">${timelineMarkup(item)}</td>
+            <td class="p-3">
+              <div class="flex flex-wrap gap-1">
+                <button data-booking-index="${item._index}" data-action="confirm" class="booking-action rounded-md bg-brand-green text-white px-2.5 py-1 text-xs ${confirmDisabled} ${actionLock}" ${(paymentSettled && !isCancelled && !isDeclined) ? '' : 'disabled'}>${confirmLabel}</button>
+                <button data-booking-index="${item._index}" data-action="refund" class="booking-action rounded-md bg-brand-blue text-white px-2.5 py-1 text-xs ${isRefundRequest ? '' : 'opacity-60 cursor-not-allowed'}" ${isRefundRequest ? '' : 'disabled'}>Approve Refund</button>
+                <button data-booking-index="${item._index}" data-action="decline" class="booking-action rounded-md bg-red-600 text-white px-2.5 py-1 text-xs ${actionLock}" ${(isCancelled || isDeclined || isRefunded) ? 'disabled' : ''}>Decline</button>
+                <button data-booking-index="${item._index}" data-action="complete" class="booking-action rounded-md bg-brand-orange text-white px-2.5 py-1 text-xs ${actionLock}" ${(isCancelled || isDeclined || isRefunded) ? 'disabled' : ''}>Complete</button>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')
+        : '<tr><td colspan="12" class="p-4 text-slate-500">No citizen bookings yet.</td></tr>';
+
+      const visibleRefs = ordered.map((item) => String(item.id || '')).filter(Boolean);
+      const allVisibleSelected = visibleRefs.length > 0 && visibleRefs.every((ref) => selectedBookingRefs.has(ref));
+      if (el.bulkSelectAllBookings) el.bulkSelectAllBookings.checked = allVisibleSelected;
+    }
+
+    function renderFollowupDesk() {
+      state.followups = JSON.parse(localStorage.getItem(storageKeys.followups) || '[]');
+      el.followupDeskBody.innerHTML = state.followups.length
+        ? state.followups.map((item, idx) => `<tr class="bg-white">
+            <td class="p-3">${item.ticketId}</td>
+            <td class="p-3">${item.category}</td>
+            <td class="p-3">${item.referenceId || 'N/A'}</td>
+            <td class="p-3">${item.message}</td>
+            <td class="p-3">${item.status}</td>
+            <td class="p-3">
+              <div class="flex flex-wrap gap-1">
+                <button data-followup-index="${idx}" data-action="review" class="followup-action rounded-md bg-brand-blue text-white px-2.5 py-1 text-xs">Review</button>
+                <button data-followup-index="${idx}" data-action="resolve" class="followup-action rounded-md bg-brand-green text-white px-2.5 py-1 text-xs">Resolve</button>
+              </div>
+            </td>
+          </tr>`).join('')
+        : '<tr><td colspan="6" class="p-4 text-slate-500">No follow-up tickets yet.</td></tr>';
+    }
+
+    function renderMayorAnnouncementsAdmin() {
+      state.mayorAnnouncements = JSON.parse(localStorage.getItem(storageKeys.mayorAnnouncements) || '[]');
+      el.mayorAnnouncementAdminList.innerHTML = state.mayorAnnouncements.length
+        ? state.mayorAnnouncements.slice().reverse().map((item, i) => `<li class="rounded-lg border border-slate-200 bg-slate-50 p-3 flex items-start justify-between gap-3">
+            <div>
+              <p class="font-semibold">${item.title}</p>
+              <p class="text-slate-600">${item.content}</p>
+            </div>
+            <button data-mayor-ann-index="${state.mayorAnnouncements.length - 1 - i}" class="delete-mayor-ann text-xs rounded-md bg-red-100 text-red-700 px-2 py-1">Delete</button>
+          </li>`).join('')
+        : '<li class="text-slate-500">No mayor bulletins yet.</li>';
+    }
+
+    function drawSimpleBarChart(canvas, items, color = '#1E3A8A') {
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth || 580;
+      const height = canvas.clientHeight || 130;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      const max = Math.max(1, ...items.map((x) => x.value));
+      const gap = 14;
+      const barWidth = (width - gap * (items.length + 1)) / items.length;
+      const chartHeight = height - 30;
+
+      items.forEach((item, i) => {
+        const h = (item.value / max) * (chartHeight - 10);
+        const x = gap + i * (barWidth + gap);
+        const y = chartHeight - h;
+        ctx.fillStyle = item.color || color;
+        ctx.fillRect(x, y, barWidth, h);
+        ctx.fillStyle = '#334155';
+        ctx.font = '11px sans-serif';
+        ctx.fillText(item.label, x, height - 10);
+      });
+    }
+
+    function drawCashflowChart() {
+      const canvas = el.cashflowChart;
+      if (!canvas || !state.mayorFinance) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const points = state.mayorFinance.cashflow;
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth || 580;
+      const height = canvas.clientHeight || 130;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      const max = Math.max(...points.flatMap((p) => [p.inflow, p.outflow]), 1);
+      const padX = 26;
+      const padY = 18;
+      const usableW = width - padX * 2;
+      const usableH = height - padY * 2;
+
+      function yScale(v) {
+        return height - padY - (v / max) * usableH;
+      }
+
+      function drawLine(values, color) {
+        ctx.beginPath();
+        values.forEach((v, i) => {
+          const x = padX + (i * usableW) / (values.length - 1);
+          const y = yScale(v);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      drawLine(points.map((p) => p.inflow), '#16A34A');
+      drawLine(points.map((p) => p.outflow), '#F97316');
+
+      ctx.fillStyle = '#334155';
+      ctx.font = '11px sans-serif';
+      points.forEach((p, i) => {
+        const x = padX + (i * usableW) / (points.length - 1);
+        ctx.fillText(p.month, x - 10, height - 4);
+      });
+    }
+
+    function renderMayorFinance() {
+      state.mayorFinance = JSON.parse(localStorage.getItem(storageKeys.mayorFinance) || 'null');
+      if (!state.mayorFinance) return;
+
+      const funds = state.mayorFinance.funds;
+      el.fundCollected.textContent = formatPHP(funds.collected);
+      el.fundDisbursed.textContent = formatPHP(funds.disbursed);
+      el.fundReserve.textContent = formatPHP(funds.reserve);
+      el.fundCompliance.textContent = `${funds.compliance}%`;
+
+      drawSimpleBarChart(
+        el.budgetChart,
+        state.mayorFinance.allocations.map((a) => ({ label: a.label.split(' ')[0], value: a.value, color: '#1E3A8A' }))
+      );
+      drawCashflowChart();
+
+      el.treasuryList.innerHTML = state.mayorFinance.treasury
+        .map((item) => `<li class="rounded-lg border border-slate-200 bg-white p-3 flex items-center justify-between"><span>${item.account}</span><strong>${formatPHP(item.amount)}</strong></li>`)
+        .join('');
+
+      el.auditList.innerHTML = state.mayorFinance.audits
+        .map((item) => `<li class="rounded-lg border border-slate-200 bg-white p-3"><strong>${item.period}</strong> • ${item.result}<br><span class="text-slate-600 text-xs">${item.note}</span></li>`)
+        .join('');
+    }
+
+    function renderAdminNotifications() {
+      const items = loadNotifications()
+        .filter((x) => x.target === 'admin' || x.target === 'all')
+        .slice()
+        .reverse()
+        .slice(0, 10);
+
+      el.adminNotifList.innerHTML = items.length
+        ? items.map((item) => `<li class="rounded-lg border ${item.read ? 'border-slate-200 bg-slate-50' : 'border-blue-200 bg-blue-50'} p-3"><strong>${item.title}</strong><p class="text-slate-600">${item.message}</p><p class="text-[11px] text-slate-500 mt-1">${item.refId ? `Ref: ${item.refId} • ` : ''}${new Date(item.createdAt).toLocaleString()}</p></li>`).join('')
+        : '<li class="text-slate-500">No admin notifications yet.</li>';
+    }
+
+    function renderFeedbackInsights() {
+      const items = JSON.parse(localStorage.getItem(storageKeys.feedback) || '[]').slice().reverse();
+      if (!items.length) {
+        el.feedbackAverage.textContent = 'Average: N/A';
+        el.feedbackInsightList.innerHTML = '<li class="text-slate-500">No citizen feedback yet.</li>';
+        return;
+      }
+
+      const avg = items.reduce((sum, x) => sum + Number(x.rating || 0), 0) / items.length;
+      el.feedbackAverage.textContent = `Average: ${avg.toFixed(1)} / 5`;
+      el.feedbackInsightList.innerHTML = items.slice(0, 8).map((item) => `<li class="rounded-lg border border-slate-200 bg-slate-50 p-3"><strong>${item.reference}</strong> • ${'⭐'.repeat(Number(item.rating || 0))}<br><span class="text-slate-600">${item.comment}</span></li>`).join('');
+    }
+
+    function renderSuggestionModeration() {
+      const items = JSON.parse(localStorage.getItem(storageKeys.suggestions) || '[]').slice().reverse();
+      el.suggestionAdminList.innerHTML = items.length
+        ? items.map((item) => `<article class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p><strong>${item.id || 'Suggestion'}</strong> • ${item.category}</p>
+                <p class="text-slate-600 mt-1">${item.message}</p>
+                <p class="text-[11px] text-slate-500 mt-1">Votes: ▲${item.upvotes || 0} ▼${item.downvotes || 0}</p>
+                ${item.adminResponse ? `<p class="text-[11px] text-brand-blue mt-1"><strong>Response:</strong> ${item.adminResponse}</p>` : ''}
+              </div>
+              <div class="flex flex-wrap gap-1">
+                <button data-suggestion-id="${item.id}" data-suggestion-action="planned" class="suggestion-admin-action rounded-md bg-blue-100 text-blue-700 px-2 py-1 text-xs">Planned</button>
+                <button data-suggestion-id="${item.id}" data-suggestion-action="implemented" class="suggestion-admin-action rounded-md bg-green-100 text-green-700 px-2 py-1 text-xs">Implemented</button>
+                <button data-suggestion-id="${item.id}" data-suggestion-action="reply" class="suggestion-admin-action rounded-md bg-amber-100 text-amber-700 px-2 py-1 text-xs">Reply</button>
+              </div>
+            </div>
+          </article>`).join('')
+        : '<p class="text-slate-500">No citizen suggestions yet.</p>';
+    }
+
+    function renderIncidentDesk() {
+      const items = JSON.parse(localStorage.getItem(storageKeys.incidents) || '[]').slice().reverse();
+      el.incidentAdminList.innerHTML = items.length
+        ? items.map((item) => `<article class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p><strong>${item.ticketId}</strong> • ${item.category}</p>
+                <p class="text-slate-600 mt-1">${item.location} — ${item.details}</p>
+                <p class="text-[11px] text-brand-blue mt-1">Status: ${item.status || 'Submitted'}</p>
+              </div>
+              <div class="flex flex-wrap gap-1">
+                <button data-incident-id="${item.ticketId}" data-incident-action="review" class="incident-admin-action rounded-md bg-blue-100 text-blue-700 px-2 py-1 text-xs">In Review</button>
+                <button data-incident-id="${item.ticketId}" data-incident-action="resolve" class="incident-admin-action rounded-md bg-green-100 text-green-700 px-2 py-1 text-xs">Resolved</button>
+              </div>
+            </div>
+          </article>`).join('')
+        : '<p class="text-slate-500">No incidents submitted yet.</p>';
+    }
+
+    function loadEmergencyState() {
+      return JSON.parse(localStorage.getItem(storageKeys.emergencyState) || '{"active":false,"level":"Advisory","title":"Emergency Operations Mode Active","message":"City emergency protocol is active. Use emergency channels for urgent assistance.","hotline":"911"}');
+    }
+
+    function saveEmergencyState(data) {
+      localStorage.setItem(storageKeys.emergencyState, JSON.stringify(data));
+    }
+
+    function loadEmergencyHelp() {
+      return JSON.parse(localStorage.getItem(storageKeys.emergencyHelp) || '[]');
+    }
+
+    function saveEmergencyHelp(items) {
+      localStorage.setItem(storageKeys.emergencyHelp, JSON.stringify(items));
+    }
+
+    function renderEmergencyCommandCenter() {
+      state.emergencyState = loadEmergencyState();
+      const current = state.emergencyState;
+      el.emergencyActive.checked = !!current.active;
+      el.emergencyLevel.value = current.level || 'Advisory';
+      el.emergencyTitleInput.value = current.title || 'Emergency Operations Mode Active';
+      el.emergencyMessageInput.value = current.message || 'City emergency protocol is active. Use emergency channels for urgent assistance.';
+      el.emergencyHotlineInput.value = current.hotline || '911';
+      el.emergencyAdminStatus.textContent = `Status: ${current.active ? `ACTIVE (${current.level || 'Advisory'})` : 'Inactive'}`;
+      el.emergencyAdminStatus.className = `text-xs rounded-full px-3 py-1 ${current.active ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}`;
+    }
+
+    function renderEmergencyQueue() {
+      state.emergencyHelp = loadEmergencyHelp();
+      const items = state.emergencyHelp.slice().reverse();
+      el.emergencyQueueList.innerHTML = items.length
+        ? items.map((item) => `<li class="rounded-lg border border-slate-200 bg-white p-3">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p><strong>${item.id}</strong> • ${item.type}</p>
+                <p class="text-slate-600 text-xs mt-1">${item.location}</p>
+                <p class="text-slate-500 text-xs">${item.details}</p>
+                <p class="text-[11px] text-brand-blue mt-1">Status: ${item.status || 'Submitted'} • ${new Date(item.createdAt).toLocaleString()}</p>
+              </div>
+              <div class="flex flex-wrap gap-1">
+                <button data-emergency-id="${item.id}" data-emergency-action="ack" class="emergency-action rounded-md bg-blue-100 text-blue-700 px-2 py-1 text-xs">Acknowledge</button>
+                <button data-emergency-id="${item.id}" data-emergency-action="dispatch" class="emergency-action rounded-md bg-amber-100 text-amber-700 px-2 py-1 text-xs">Dispatch</button>
+                <button data-emergency-id="${item.id}" data-emergency-action="resolve" class="emergency-action rounded-md bg-green-100 text-green-700 px-2 py-1 text-xs">Resolved</button>
+              </div>
+            </div>
+          </li>`).join('')
+        : '<li class="text-slate-500">No emergency help tickets yet.</li>';
+    }
+
+    function renderSlaDashboard() {
+      const followups = JSON.parse(localStorage.getItem(storageKeys.followups) || '[]');
+      const incidents = JSON.parse(localStorage.getItem(storageKeys.incidents) || '[]');
+      const suggestions = JSON.parse(localStorage.getItem(storageKeys.suggestions) || '[]');
+      const emergency = JSON.parse(localStorage.getItem(storageKeys.emergencyHelp) || '[]');
+
+      const openFollowups = followups.filter((item) => (item.status || '').toLowerCase() !== 'resolved').length;
+      const openIncidents = incidents.filter((item) => (item.status || '').toLowerCase() !== 'resolved').length;
+      const openSuggestions = suggestions.filter((item) => !['implemented', 'declined'].includes((item.status || 'under review').toLowerCase())).length;
+      const openEmergency = emergency.filter((item) => !['resolved', 'closed'].includes((item.status || 'submitted').toLowerCase())).length;
+
+      const resolvedPool = [
+        ...followups.filter((x) => (x.status || '').toLowerCase() === 'resolved'),
+        ...incidents.filter((x) => (x.status || '').toLowerCase() === 'resolved'),
+        ...suggestions.filter((x) => (x.status || '').toLowerCase() === 'implemented'),
+        ...emergency.filter((x) => (x.status || '').toLowerCase() === 'resolved')
+      ];
+
+      const avgHours = resolvedPool.length
+        ? resolvedPool.reduce((sum, item) => {
+          const created = new Date(item.createdAt || item.updatedAt || Date.now()).getTime();
+          const closed = new Date(item.updatedAt || Date.now()).getTime();
+          return sum + Math.max(1, (closed - created) / (1000 * 60 * 60));
+        }, 0) / resolvedPool.length
+        : 0;
+
+      el.slaOpenFollowups.textContent = String(openFollowups);
+      el.slaOpenIncidents.textContent = String(openIncidents);
+      el.slaOpenSuggestions.textContent = `${openSuggestions}${openEmergency ? ` (+${openEmergency} emergency)` : ''}`;
+      el.slaAvgResolve.textContent = `${avgHours.toFixed(1)} hrs`;
+    }
+
+    function decorateAdminSectionTitles() {
+      const iconBySection = {
+        overview: '🏢',
+        analytics: '📈',
+        cityPulseAdmin: '⚡',
+        emergencyAdmin: '🆘',
+        adminInbox: '📥',
+        finance: '💰',
+        review: '🧪',
+        bookings: '📚',
+        claims: '🪪',
+        insights: '⭐',
+        suggestionHubAdmin: '💡',
+        incidentDeskAdmin: '🚨',
+        slaAdmin: '⏱️',
+        followupDesk: '🔎',
+        queue: '🧾',
+        verify: '✅',
+        schedule: '🗓️',
+        announce: '📣',
+        gallery: '🖼️'
+      };
+
+      document.querySelectorAll('main section').forEach((section) => {
+        const h2 = section.querySelector('h2');
+        if (!h2 || h2.dataset.polished === 'true') return;
+        const icon = iconBySection[section.id] || '•';
+        h2.innerHTML = `<span class="section-title-polish"><span class="section-icon-dot" aria-hidden="true">${icon}</span><span>${h2.textContent}</span></span>`;
+        h2.dataset.polished = 'true';
+      });
+    }
+
+    function autoFillDemoData() {
+      state.review = structuredClone(fallbackReview);
+      state.queue = structuredClone(fallbackQueue);
+      state.schedule = structuredClone(fallbackSchedule);
+      state.announcements = structuredClone(fallbackAnnouncements);
+      localStorage.setItem(storageKeys.citizenBookings, JSON.stringify(fallbackCitizenBookings));
+      localStorage.setItem(storageKeys.followups, JSON.stringify(fallbackFollowups));
+      localStorage.setItem(storageKeys.mayorAnnouncements, JSON.stringify(fallbackMayorAnnouncements));
+      localStorage.setItem(storageKeys.mayorFinance, JSON.stringify(fallbackMayorFinance));
+
+      const nowTag = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      state.announcements.push({ title: 'Manager Demo Update', body: `Live demo broadcast sent at ${nowTag}.` });
+      state.schedule.push({ day: 'Friday', start: '10:00', end: '18:00' });
+
+      const waiting = state.queue.find((item) => item.status === 'Waiting');
+      if (waiting) waiting.status = 'Checked-In';
+
+      const pending = state.review.find((item) => item.status === 'Pending');
+      if (pending) pending.status = 'In Review';
+
+      save(storageKeys.review, state.review);
+      save(storageKeys.queue, state.queue);
+      save(storageKeys.schedule, state.schedule);
+      save(storageKeys.announce, state.announcements);
+
+      el.verifyComment.value = 'Manager demo mode: pre-validated application checks.';
+      renderReview();
+      renderQueue();
+      renderCitizenBookings();
+      renderFollowupDesk();
+      renderSchedule();
+      renderAnnouncements();
+      renderMayorAnnouncementsAdmin();
+      renderMayorFinance();
+      showToast('Demo data prepared for presentation.');
+      setDemoStatus('data prepared');
+    }
+
+    function stopGuidedDemo() {
+      demo.running = false;
+      clearDemoTimers();
+      clearDemoHighlights();
+      setDemoStatus('stopped');
+      el.demoModeBtn.textContent = 'Start Guided Demo';
+      showToast('Guided demo stopped.');
+    }
+
+    function startGuidedDemo() {
+      if (demo.running) {
+        stopGuidedDemo();
+        return;
+      }
+
+      demo.running = true;
+      clearDemoTimers();
+      autoFillDemoData();
+      el.demoModeBtn.textContent = 'Stop Guided Demo';
+      setDemoStatus('running walkthrough...');
+
+      const steps = [
+        { id: 'overview', note: 'Overview: KPI cards summarize current operations.' },
+        { id: 'analytics', note: 'Analytics: live chart updates when data changes.' },
+        { id: 'finance', note: 'Mayor Finance: budget allocation, treasury balances, and audit reports are visible.' },
+        { id: 'review', note: 'Review Queue: filter and process permit applications quickly.' },
+        { id: 'bookings', note: 'Citizen bookings arrive here automatically from user pages.' },
+        { id: 'followupDesk', note: 'Follow-up Desk: citizen tickets are reviewed and resolved here.' },
+        { id: 'queue', note: 'Queue Monitor: check-in and reschedule actions are one click.' },
+        { id: 'verify', note: 'Verification: approve, revise, or reject with reviewer notes.' },
+        { id: 'schedule', note: 'Schedule Config: control service window availability.' },
+        { id: 'announce', note: 'Announcements: publish service advisories in real time.' },
+        { id: 'gallery', note: 'Design Gallery: aligned with your included Figma-export images.' }
+      ];
+
+      steps.forEach((step, index) => {
+        const timerId = setTimeout(() => {
+          if (!demo.running) return;
+          highlightSection(step.id);
+          showToast(step.note);
+
+          if (index === steps.length - 1) {
+            demo.running = false;
+            el.demoModeBtn.textContent = 'Start Guided Demo';
+            setDemoStatus('completed');
+            const cleanupId = setTimeout(() => clearDemoHighlights(), 1800);
+            demo.timers.push(cleanupId);
+          }
+        }, 1400 * index);
+
+        demo.timers.push(timerId);
+      });
+    }
+
+    function refreshKPIs() {
+      el.kpiPending.textContent = String(state.review.filter((x) => x.status === 'Pending').length);
+      el.kpiCheckin.textContent = String(state.queue.filter((x) => x.status === 'Checked-In').length);
+      el.kpiNoShow.textContent = String(state.queue.filter((x) => x.status === 'No-Show').length);
+      el.kpiAnnounce.textContent = String(state.announcements.length);
+      drawOpsChart();
+      renderMayorFinance();
+      renderCityPulseAdmin();
+      renderSlaDashboard();
+    }
+
+    function drawOpsChart() {
+      const canvas = el.opsChart;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth || 600;
+      const height = canvas.clientHeight || 120;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      ctx.clearRect(0, 0, width, height);
+
+      const data = [
+        { label: 'Pending', value: Number(el.kpiPending.textContent), color: '#1E3A8A' },
+        { label: 'Checked-In', value: Number(el.kpiCheckin.textContent), color: '#16A34A' },
+        { label: 'No-Show', value: Number(el.kpiNoShow.textContent), color: '#DC2626' },
+        { label: 'Announcements', value: Number(el.kpiAnnounce.textContent), color: '#F97316' }
+      ];
+
+      const max = Math.max(1, ...data.map((d) => d.value));
+      const gap = 18;
+      const barWidth = (width - gap * (data.length + 1)) / data.length;
+      const chartHeight = height - 32;
+
+      data.forEach((d, i) => {
+        const x = gap + i * (barWidth + gap);
+        const h = (d.value / max) * (chartHeight - 14);
+        const y = chartHeight - h;
+
+        ctx.fillStyle = d.color;
+        ctx.fillRect(x, y, barWidth, h);
+
+        ctx.fillStyle = '#334155';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(String(d.value), x + barWidth / 2 - 4, y - 4);
+        ctx.fillText(d.label, x, height - 10);
+      });
+    }
+
+    function renderReview() {
+      const permit = el.reviewPermitFilter.value;
+      const status = el.reviewStatusFilter.value;
+      const query = el.reviewSearch.value.toLowerCase().trim();
+
+      const rows = state.review.filter((item) => {
+        const permitPass = permit === 'all' || item.permit === permit;
+        const statusPass = status === 'all' || item.status === status;
+        const queryPass = item.applicant.toLowerCase().includes(query) || item.id.toLowerCase().includes(query);
+        return permitPass && statusPass && queryPass;
+      });
+
+      el.reviewBody.innerHTML = rows.map((row) => `
+        <tr class="bg-white">
+          <td class="p-3">${row.id}</td>
+          <td class="p-3">${row.applicant}</td>
+          <td class="p-3">${row.permit}</td>
+          <td class="p-3">${row.submitted}</td>
+          <td class="p-3">${row.status}</td>
+          <td class="p-3"><button class="review-cycle rounded-md bg-brand-blue text-white px-3 py-1.5 text-xs" data-id="${row.id}">Advance</button></td>
+        </tr>
+      `).join('');
+
+      refreshKPIs();
+    }
+
+    function renderQueue() {
+      el.queueBody.innerHTML = state.queue.map((row, i) => {
+        const action = row.status === 'Waiting' ? 'Check-In' : row.status === 'No-Show' ? 'Reschedule' : 'Done';
+        return `
+          <tr class="bg-white">
+            <td class="p-3">${row.id}</td>
+            <td class="p-3">${row.time}</td>
+            <td class="p-3">${row.name}</td>
+            <td class="p-3">${row.service}</td>
+            <td class="p-3">${row.status}</td>
+            <td class="p-3"><button class="queue-act rounded-md bg-brand-blue text-white px-3 py-1.5 text-xs" data-index="${i}">${action}</button></td>
+          </tr>
+        `;
+      }).join('');
+
+      refreshKPIs();
+    }
+
+    function renderSchedule() {
+      el.scheduleList.innerHTML = state.schedule.map((slot, i) => `
+        <li class="rounded-lg border border-slate-200 bg-slate-50 p-3 flex items-center justify-between">
+          <span>${slot.day}: <strong>${slot.start}</strong> - <strong>${slot.end}</strong></span>
+          <button class="delete-slot text-xs rounded-md bg-red-100 text-red-700 px-2 py-1" data-index="${i}">Remove</button>
+        </li>
+      `).join('');
+    }
+
+    function renderAnnouncements() {
+      el.adminAnnouncementList.innerHTML = state.announcements.slice().reverse().map((a, i) => `
+        <li class="rounded-lg border border-slate-200 bg-slate-50 p-3 flex items-start justify-between gap-3">
+          <div>
+            <p class="font-semibold">${a.title}</p>
+            <p class="text-slate-600">${a.body}</p>
+          </div>
+          <button class="delete-ann text-xs rounded-md bg-red-100 text-red-700 px-2 py-1" data-index="${state.announcements.length - 1 - i}">Delete</button>
+        </li>
+      `).join('');
+
+      refreshKPIs();
+    }
+
+    function cycleStatus(status) {
+      const flow = ['Pending', 'In Review', 'Approved'];
+      const idx = flow.indexOf(status);
+      return idx === -1 || idx === flow.length - 1 ? flow[0] : flow[idx + 1];
+    }
+
+    function openBookingReasonModal(action, booking, index) {
+      reasonFlow.action = action;
+      reasonFlow.bookingIndex = index;
+      bookingReasonTitle.textContent = action === 'refund' ? 'Refund Approval Reason' : 'Decline Reason';
+      bookingReasonMeta.textContent = `Ref: ${booking.id || 'N/A'} • Ticket: ${booking.ticketId || 'N/A'}`;
+      bookingReasonInput.value = '';
+      declineReasonPreset.value = '';
+      declinePresetWrap.classList.toggle('hidden', action !== 'decline');
+      if (action === 'refund') {
+        bookingReasonInput.placeholder = 'Explain why refund is approved (audit note)...';
+        bookingReasonInput.classList.remove('hidden');
+      } else {
+        bookingReasonInput.placeholder = 'Optional additional details...';
+        bookingReasonInput.classList.add('hidden');
+      }
+      bookingReasonModal.classList.remove('hidden');
+    }
+
+    function closeBookingReasonModal() {
+      bookingReasonModal.classList.add('hidden');
+      reasonFlow.action = null;
+      reasonFlow.bookingIndex = null;
+      bookingReasonInput.value = '';
+      declineReasonPreset.value = '';
+      declinePresetWrap.classList.add('hidden');
+      bookingReasonInput.classList.remove('hidden');
+    }
+
+    function seedData() {
+      state.review = structuredClone(fallbackReview);
+      state.queue = structuredClone(fallbackQueue);
+      state.schedule = structuredClone(fallbackSchedule);
+      state.announcements = structuredClone(fallbackAnnouncements);
+
+      save(storageKeys.review, state.review);
+      save(storageKeys.queue, state.queue);
+      save(storageKeys.schedule, state.schedule);
+      save(storageKeys.announce, state.announcements);
+      localStorage.setItem(storageKeys.citizenBookings, JSON.stringify(fallbackCitizenBookings));
+
+      renderReview();
+      renderQueue();
+      renderCitizenBookings();
+      renderSchedule();
+      renderAnnouncements();
+      showToast('Demo data reset complete.');
+    }
+
+    function exportReport() {
+      const lines = [
+        ['Section', 'ID/Day', 'Name/Applicant', 'Status/Window', 'Notes'].join(','),
+        ...state.review.map((r) => ['Review', r.id, r.applicant, r.status, r.permit].join(',')),
+        ...state.queue.map((q) => ['Queue', q.id, q.name, q.status, q.service].join(',')),
+        ...state.citizenBookings.map((b) => ['CitizenBooking', b.id || '', b.name || '', b.status || '', b.service || b.documentType || ''].join(',')),
+        ...state.schedule.map((s) => ['Schedule', s.day, '', `${s.start}-${s.end}`, ''].join(','))
+      ];
+      const csv = lines.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'smart-city-admin-report.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('CSV report exported.');
+    }
+
+    el.menuBtn.addEventListener('click', () => {
+      el.adminNav.classList.toggle('hidden');
+    });
+
+    [el.reviewPermitFilter, el.reviewStatusFilter].forEach((input) => input.addEventListener('change', renderReview));
+    el.reviewSearch.addEventListener('input', renderReview);
+
+    el.reviewBody.addEventListener('click', (event) => {
+      const button = event.target.closest('.review-cycle');
+      if (!button) return;
+      const item = state.review.find((x) => x.id === button.dataset.id);
+      if (!item) return;
+      item.status = cycleStatus(item.status);
+      save(storageKeys.review, state.review);
+      renderReview();
+      showToast(`${item.id} moved to ${item.status}.`);
+    });
+
+    el.citizenBookingsBody.addEventListener('change', (event) => {
+      const box = event.target.closest('.booking-select');
+      if (!box) return;
+      const ref = String(box.dataset.bookingRef || '');
+      if (!ref) return;
+      if (box.checked) selectedBookingRefs.add(ref);
+      else selectedBookingRefs.delete(ref);
+    });
+
+    el.citizenBookingsBody.addEventListener('click', (event) => {
+      const button = event.target.closest('.booking-action');
+      if (!button) return;
+      const index = Number(button.dataset.bookingIndex);
+      const action = button.dataset.action;
+      const bookings = JSON.parse(localStorage.getItem(storageKeys.citizenBookings) || '[]');
+      const item = bookings[index];
+      if (!item) return;
+
+      const paymentSettled = (item.paymentStatus || '').toLowerCase().includes('paid') || (item.paymentStatus || '').toLowerCase().includes('cash');
+      const status = (item.status || '').toLowerCase();
+      const isCancelled = status.includes('cancel');
+      const isDeclined = status.includes('declined');
+      const isRefunded = (item.paymentStatus || '').toLowerCase().includes('refund');
+
+      if ((isCancelled || isDeclined || isRefunded) && action !== 'refund') {
+        showToast('This request is inactive (cancelled/declined/refunded).');
+        return;
+      }
+
+      if (action === 'confirm') {
+        if (!paymentSettled) {
+          showToast(`Cannot confirm ${item.id || 'request'} yet. Payment must be settled first.`);
+          return;
+        }
+        if ((item.status || '').toLowerCase().includes('cancel')) {
+          showToast('This request is under cancellation/refund flow.');
+          return;
+        }
+        item.status = 'Confirmed by Admin';
+        pushNotification('citizen', 'Request Confirmed', `Your request ${item.id} has been confirmed by admin.`, item.id);
+      }
+      if (action === 'refund') {
+        openBookingReasonModal('refund', item, index);
+        return;
+      }
+      if (action === 'decline') {
+        openBookingReasonModal('decline', item, index);
+        return;
+      }
+      if (action === 'complete') {
+        item.status = 'Completed';
+        if (!paymentSettled) item.paymentStatus = 'Paid';
+        pushNotification('citizen', 'Request Completed', `Your request ${item.id} is now completed.`, item.id);
+      }
+
+      localStorage.setItem(storageKeys.citizenBookings, JSON.stringify(bookings));
+      renderCitizenBookings();
+      showToast(`Booking ${item.id || ''} updated.`);
+    });
+
+    el.bulkSelectAllBookings.addEventListener('change', () => {
+      const checked = !!el.bulkSelectAllBookings.checked;
+      document.querySelectorAll('.booking-select').forEach((box) => {
+        const ref = String(box.dataset.bookingRef || '');
+        box.checked = checked;
+        if (!ref) return;
+        if (checked) selectedBookingRefs.add(ref);
+        else selectedBookingRefs.delete(ref);
+      });
+    });
+
+    el.applyBulkBookingBtn.addEventListener('click', applyBulkBookingAction);
+
+    submitBookingReasonBtn.addEventListener('click', () => {
+      if (reasonFlow.bookingIndex === null || !reasonFlow.action) return;
+      let reason = '';
+
+      if (reasonFlow.action === 'decline') {
+        const preset = declineReasonPreset.value;
+        const detail = bookingReasonInput.value.trim();
+        if (!preset) {
+          showToast('Please select a preset decline reason.');
+          return;
+        }
+        if (preset === 'other') {
+          if (!detail) {
+            bookingReasonInput.classList.remove('hidden');
+            showToast('Please enter details for the "Other" decline reason.');
+            return;
+          }
+          reason = detail;
+        } else {
+          reason = detail ? `${preset} — ${detail}` : preset;
+        }
+      } else {
+        reason = bookingReasonInput.value.trim();
+        if (!reason) {
+          showToast('Please provide a reason before submitting.');
+          return;
+        }
+      }
+
+      const bookings = JSON.parse(localStorage.getItem(storageKeys.citizenBookings) || '[]');
+      const item = bookings[reasonFlow.bookingIndex];
+      if (!item) return;
+
+      if (reasonFlow.action === 'refund') {
+        item.status = 'Refund Approved / Cancelled';
+        item.paymentStatus = 'Refunded';
+        item.refundReason = reason;
+        pushNotification('citizen', 'Refund Approved', `Refund approved for ${item.id}.`, item.id);
+      }
+
+      if (reasonFlow.action === 'decline') {
+        item.status = 'Declined by Admin';
+        item.declineReason = reason;
+        pushNotification('citizen', 'Request Declined', `Your request ${item.id} was declined: ${reason}`, item.id);
+      }
+
+      localStorage.setItem(storageKeys.citizenBookings, JSON.stringify(bookings));
+      renderCitizenBookings();
+      closeBookingReasonModal();
+      showToast(`Booking ${item.id || ''} updated with reason.`);
+    });
+
+    closeBookingReasonBtn.addEventListener('click', closeBookingReasonModal);
+    bookingReasonModal.addEventListener('click', (event) => {
+      if (event.target === bookingReasonModal) closeBookingReasonModal();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !bookingReasonModal.classList.contains('hidden')) closeBookingReasonModal();
+    });
+
+    declineReasonPreset.addEventListener('change', () => {
+      if (declineReasonPreset.value === 'other') {
+        bookingReasonInput.classList.remove('hidden');
+        bookingReasonInput.placeholder = 'Specify the decline reason...';
+      } else {
+        bookingReasonInput.classList.add('hidden');
+        bookingReasonInput.value = '';
+        bookingReasonInput.placeholder = 'Optional additional details...';
+      }
+    });
+
+    el.followupDeskBody.addEventListener('click', (event) => {
+      const button = event.target.closest('.followup-action');
+      if (!button) return;
+      const index = Number(button.dataset.followupIndex);
+      const action = button.dataset.action;
+      const items = JSON.parse(localStorage.getItem(storageKeys.followups) || '[]');
+      if (!items[index]) return;
+
+      if (action === 'review') items[index].status = 'In Review';
+      if (action === 'resolve') items[index].status = 'Resolved';
+      items[index].updatedAt = new Date().toISOString();
+
+      localStorage.setItem(storageKeys.followups, JSON.stringify(items));
+      renderFollowupDesk();
+      showToast(`Ticket ${items[index].ticketId} updated.`);
+    });
+
+    el.queueBody.addEventListener('click', (event) => {
+      const button = event.target.closest('.queue-act');
+      if (!button) return;
+      const index = Number(button.dataset.index);
+      const item = state.queue[index];
+      if (!item) return;
+
+      if (item.status === 'Waiting') item.status = 'Checked-In';
+      else if (item.status === 'No-Show') item.status = 'Waiting';
+
+      save(storageKeys.queue, state.queue);
+      renderQueue();
+      showToast(`Queue updated for ${item.name}.`);
+    });
+
+    document.querySelectorAll('.verdict-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = state.review[0];
+        if (!target) return;
+        target.status = btn.dataset.verdict;
+        save(storageKeys.review, state.review);
+        renderReview();
+        showToast(`Application ${target.id} marked as ${btn.dataset.verdict}.`);
+        el.verifyComment.value = '';
+      });
+    });
+
+    el.scheduleForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      state.schedule.push({ day: el.schedDay.value, start: el.schedStart.value, end: el.schedEnd.value });
+      save(storageKeys.schedule, state.schedule);
+      renderSchedule();
+      showToast('Schedule slot saved.');
+    });
+
+    el.scheduleList.addEventListener('click', (event) => {
+      const button = event.target.closest('.delete-slot');
+      if (!button) return;
+      state.schedule.splice(Number(button.dataset.index), 1);
+      save(storageKeys.schedule, state.schedule);
+      renderSchedule();
+      showToast('Schedule slot removed.');
+    });
+
+    el.announceForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      state.announcements.push({ title: el.annTitle.value, body: el.annBody.value });
+      save(storageKeys.announce, state.announcements);
+      renderAnnouncements();
+      el.announceForm.reset();
+      showToast('Announcement published.');
+    });
+
+    el.mayorAnnounceForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const items = JSON.parse(localStorage.getItem(storageKeys.mayorAnnouncements) || '[]');
+      items.push({ title: el.mayorAnnTitle.value, content: el.mayorAnnBody.value });
+      localStorage.setItem(storageKeys.mayorAnnouncements, JSON.stringify(items));
+      renderMayorAnnouncementsAdmin();
+      el.mayorAnnounceForm.reset();
+      showToast('Mayor bulletin published to citizen feed.');
+    });
+
+    el.adminAnnouncementList.addEventListener('click', (event) => {
+      const button = event.target.closest('.delete-ann');
+      if (!button) return;
+      state.announcements.splice(Number(button.dataset.index), 1);
+      save(storageKeys.announce, state.announcements);
+      renderAnnouncements();
+      showToast('Announcement deleted.');
+    });
+
+    el.mayorAnnouncementAdminList.addEventListener('click', (event) => {
+      const button = event.target.closest('.delete-mayor-ann');
+      if (!button) return;
+      const items = JSON.parse(localStorage.getItem(storageKeys.mayorAnnouncements) || '[]');
+      items.splice(Number(button.dataset.mayorAnnIndex), 1);
+      localStorage.setItem(storageKeys.mayorAnnouncements, JSON.stringify(items));
+      renderMayorAnnouncementsAdmin();
+      showToast('Mayor bulletin deleted.');
+    });
+
+    el.exportBtn.addEventListener('click', exportReport);
+    el.seedBtn.addEventListener('click', seedData);
+    el.syncBookingsBtn.addEventListener('click', () => {
+      renderCitizenBookings();
+      showToast('Citizen bookings synced.');
+    });
+    el.autoAssignPriorityBtn.addEventListener('click', autoAssignWindowByPriority);
+    el.applyPriorityOverrideBtn.addEventListener('click', applySupervisorPriorityOverride);
+    el.syncFollowupsBtn.addEventListener('click', () => {
+      renderFollowupDesk();
+      showToast('Citizen follow-ups synced.');
+    });
+    el.markAdminNotifReadBtn.addEventListener('click', () => {
+      const items = loadNotifications().map((n) => (n.target === 'admin' || n.target === 'all') ? { ...n, read: true } : n);
+      saveNotifications(items);
+      renderAdminNotifications();
+      showToast('Admin notifications marked as read.');
+    });
+    el.verifyClaimBtn.addEventListener('click', () => {
+      const query = el.claimSearchInput.value.trim().toUpperCase();
+      const bookings = JSON.parse(localStorage.getItem(storageKeys.citizenBookings) || '[]');
+      const match = bookings.find((item) => (item.claimCode || '').toUpperCase() === query || (item.ticketId || '').toUpperCase() === query);
+      el.claimVerifyResult.innerHTML = match
+        ? `<strong>Verified:</strong> ${match.name || 'Citizen'} • ${match.id} • ${match.ticketId || 'N/A'} • ${match.claimCode || 'N/A'}<br><span class="text-slate-500">${match.status} • ${match.paymentStatus || 'N/A'}</span>`
+        : 'No matching claim code/ticket found.';
+    });
+
+    el.syncSuggestionsBtn.addEventListener('click', () => {
+      renderSuggestionModeration();
+      renderSlaDashboard();
+      showToast('Citizen suggestions synced.');
+    });
+
+    el.syncIncidentsBtn.addEventListener('click', () => {
+      renderIncidentDesk();
+      renderSlaDashboard();
+      showToast('Incident tickets synced.');
+    });
+
+    el.syncEmergencyBtn.addEventListener('click', () => {
+      renderEmergencyQueue();
+      renderCityPulseAdmin();
+      renderSlaDashboard();
+      showToast('Emergency queue synced.');
+    });
+
+    el.emergencyCommandForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const nextState = {
+        active: !!el.emergencyActive.checked,
+        level: el.emergencyLevel.value,
+        title: el.emergencyTitleInput.value.trim() || 'Emergency Operations Mode Active',
+        message: el.emergencyMessageInput.value.trim() || 'City emergency protocol is active. Use emergency channels for urgent assistance.',
+        hotline: el.emergencyHotlineInput.value.trim() || '911',
+        updatedAt: new Date().toISOString()
+      };
+      saveEmergencyState(nextState);
+      renderEmergencyCommandCenter();
+      renderCityPulseAdmin();
+      pushNotification('all', nextState.active ? 'Emergency Mode Activated' : 'Emergency Mode Cleared', `${nextState.title} • Hotline: ${nextState.hotline}`, 'EMERGENCY');
+      showToast(nextState.active ? 'Emergency Operations Mode activated.' : 'Emergency Operations Mode deactivated.');
+    });
+
+    el.emergencyQueueList.addEventListener('click', (event) => {
+      const button = event.target.closest('.emergency-action');
+      if (!button) return;
+      const items = loadEmergencyHelp();
+      const target = items.find((x) => x.id === button.dataset.emergencyId);
+      if (!target) return;
+
+      if (button.dataset.emergencyAction === 'ack') target.status = 'Acknowledged';
+      if (button.dataset.emergencyAction === 'dispatch') target.status = 'Responder Dispatched';
+      if (button.dataset.emergencyAction === 'resolve') target.status = 'Resolved';
+      target.updatedAt = new Date().toISOString();
+
+      saveEmergencyHelp(items);
+      renderEmergencyQueue();
+      renderCityPulseAdmin();
+      renderSlaDashboard();
+      pushNotification('citizen', 'Emergency Ticket Update', `Ticket ${target.id} status is now ${target.status}.`, target.id);
+      showToast(`Emergency ticket ${target.id} updated.`);
+    });
+
+    el.suggestionAdminList.addEventListener('click', (event) => {
+      const button = event.target.closest('.suggestion-admin-action');
+      if (!button) return;
+      const items = JSON.parse(localStorage.getItem(storageKeys.suggestions) || '[]');
+      const target = items.find((x) => x.id === button.dataset.suggestionId);
+      if (!target) return;
+
+      if (button.dataset.suggestionAction === 'planned') target.status = 'Planned';
+      if (button.dataset.suggestionAction === 'implemented') {
+        target.status = 'Implemented';
+        target.updatedAt = new Date().toISOString();
+      }
+      if (button.dataset.suggestionAction === 'reply') {
+        const response = window.prompt('Enter admin response for citizen:', target.adminResponse || '');
+        if (response !== null) target.adminResponse = response.trim();
+      }
+
+      localStorage.setItem(storageKeys.suggestions, JSON.stringify(items));
+      pushNotification('citizen', 'Suggestion Update', `Suggestion ${target.id} is now ${target.status || 'updated'}.`, target.id || 'SUGGESTION');
+      renderSuggestionModeration();
+      renderSlaDashboard();
+      showToast('Suggestion updated.');
+    });
+
+    el.incidentAdminList.addEventListener('click', (event) => {
+      const button = event.target.closest('.incident-admin-action');
+      if (!button) return;
+      const items = JSON.parse(localStorage.getItem(storageKeys.incidents) || '[]');
+      const target = items.find((x) => x.ticketId === button.dataset.incidentId);
+      if (!target) return;
+
+      if (button.dataset.incidentAction === 'review') target.status = 'In Review';
+      if (button.dataset.incidentAction === 'resolve') target.status = 'Resolved';
+      target.updatedAt = new Date().toISOString();
+
+      localStorage.setItem(storageKeys.incidents, JSON.stringify(items));
+      pushNotification('citizen', 'Incident Update', `Incident ${target.ticketId} is now ${target.status}.`, target.ticketId);
+      renderIncidentDesk();
+      renderSlaDashboard();
+      showToast('Incident updated.');
+    });
+    el.refreshPulseAdminBtn.addEventListener('click', () => {
+      renderCityPulseAdmin();
+      showToast('City Pulse intelligence refreshed.');
+    });
+    el.toggleLargeTextBtn.addEventListener('click', () => toggleA11yFlag('largeText'));
+    el.toggleContrastBtn.addEventListener('click', () => toggleA11yFlag('highContrast'));
+    el.toggleMotionBtn.addEventListener('click', () => toggleA11yFlag('reduceMotion'));
+    el.resetA11yBtn.addEventListener('click', () => {
+      saveA11yPrefs({ largeText: false, highContrast: false, reduceMotion: false });
+      applyA11yPrefs();
+      showToast('Accessibility settings reset.');
+    });
+    el.demoAutofillBtn.addEventListener('click', autoFillDemoData);
+    el.demoModeBtn.addEventListener('click', startGuidedDemo);
+    el.logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('smartCitySession');
+      showToast('Logged out.');
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 500);
+    });
+
+    state.review = loadOrSeed(storageKeys.review, fallbackReview);
+    state.queue = loadOrSeed(storageKeys.queue, fallbackQueue);
+    state.schedule = loadOrSeed(storageKeys.schedule, fallbackSchedule);
+    state.announcements = loadOrSeed(storageKeys.announce, fallbackAnnouncements);
+    ensureBookingMeta();
+    loadOrSeed(storageKeys.citizenBookings, fallbackCitizenBookings);
+    loadOrSeed(storageKeys.followups, fallbackFollowups);
+    loadOrSeed(storageKeys.suggestions, []);
+    loadOrSeed(storageKeys.incidents, []);
+    loadOrSeed(storageKeys.emergencyHelp, []);
+    loadOrSeed(storageKeys.emergencyState, { active: false, level: 'Advisory', title: 'Emergency Operations Mode Active', message: 'City emergency protocol is active. Use emergency channels for urgent assistance.', hotline: '911' });
+    loadOrSeed(storageKeys.mayorAnnouncements, fallbackMayorAnnouncements);
+    loadOrSeed(storageKeys.mayorFinance, fallbackMayorFinance);
+
+    renderReview();
+    renderQueue();
+    renderCitizenBookings();
+    renderFollowupDesk();
+    renderSchedule();
+    renderAnnouncements();
+    renderMayorAnnouncementsAdmin();
+    renderMayorFinance();
+    renderAdminNotifications();
+    renderFeedbackInsights();
+    renderSuggestionModeration();
+    renderIncidentDesk();
+    renderEmergencyCommandCenter();
+    renderEmergencyQueue();
+    renderSlaDashboard();
+    renderCityPulseAdmin();
+    decorateAdminSectionTitles();
+    applyA11yPrefs();
+    wireAdminSectionTracking();
+    restoreAdminLastSection();
+    renderSession();
+    setDemoStatus('idle');
+
+    window.addEventListener('resize', drawOpsChart);
+    window.addEventListener('resize', renderMayorFinance);
+  </script>
+</body>
+</html>

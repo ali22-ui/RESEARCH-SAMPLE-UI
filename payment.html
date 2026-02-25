@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Payment Ledger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              blue: '#1E3A8A',
+              green: '#16A34A',
+              orange: '#F97316'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+  <header class="bg-brand-blue text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3">
+        <img src="city-logo.jpg" alt="City government logo" class="h-10 w-10 rounded-full border-2 border-amber-400 bg-white object-cover" />
+        <span class="font-semibold tracking-wide">Admin Payment Ledger</span>
+      </a>
+      <div class="flex items-center gap-2">
+        <span id="sessionBadge" class="hidden sm:inline-flex px-2.5 py-1 rounded-md bg-blue-900 text-[11px]"></span>
+        <button id="logoutBtn" class="hidden sm:inline-flex rounded-md bg-red-600 px-3 py-2 text-xs hover:bg-red-500">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold">Dummy Payment Processor</h1>
+          <p class="text-slate-600 mt-1">Admin-side ledger for demo payment verification, edits, and ticket-linked payment details.</p>
+        </div>
+        <a href="admin.html" class="inline-flex items-center justify-center rounded-lg bg-brand-blue text-white px-4 py-2 font-semibold hover:bg-blue-800">Back to Admin</a>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="text-xl font-bold mb-4">All Ticketed Payments</h2>
+      <div class="overflow-auto rounded-xl border border-slate-200">
+        <table class="min-w-full text-sm">
+          <thead class="bg-brand-blue text-white">
+            <tr>
+              <th class="text-left p-3">Ref</th>
+              <th class="text-left p-3">Ticket ID</th>
+              <th class="text-left p-3">Type</th>
+              <th class="text-left p-3">Service / Document</th>
+              <th class="text-left p-3">Schedule</th>
+              <th class="text-left p-3">Amount</th>
+              <th class="text-left p-3">Payment Status</th>
+              <th class="text-left p-3">Timeline</th>
+              <th class="text-left p-3">Action</th>
+            </tr>
+          </thead>
+          <tbody id="paymentBody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="paymentModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 p-4">
+    <div class="mx-auto mt-14 max-w-xl rounded-2xl bg-white border border-slate-200 shadow-xl p-6">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h3 class="text-xl font-bold text-slate-900">Dummy Payment Processor</h3>
+          <p id="paymentRefText" class="text-sm text-slate-600"></p>
+        </div>
+        <button id="closeModalBtn" class="rounded-md bg-slate-100 px-3 py-1.5 text-sm hover:bg-slate-200">Close</button>
+      </div>
+
+      <form id="paymentForm" class="mt-4 space-y-4">
+        <div>
+          <p class="text-sm font-medium">Choose payment option</p>
+          <div class="mt-2 grid sm:grid-cols-2 gap-2 text-sm">
+            <label class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 flex items-center gap-2"><input type="radio" name="method" value="cash" checked /> Cash</label>
+            <label class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 flex items-center gap-2"><input type="radio" name="method" value="online" /> Online (QRPH/GCash/Maya/Bank)</label>
+          </div>
+        </div>
+
+        <div id="providerWrap" class="hidden">
+          <label for="providerSelect" class="text-sm font-medium">Provider</label>
+          <select id="providerSelect" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2">
+            <option>QRPH</option>
+            <option>GCash</option>
+            <option>Maya</option>
+            <option>Bank Transfer</option>
+          </select>
+        </div>
+
+        <p id="paymentNote" class="rounded-lg border border-blue-200 bg-blue-50 text-brand-blue text-sm p-3"></p>
+
+        <button class="rounded-lg bg-brand-green text-white font-semibold px-5 py-2.5 hover:bg-green-700" type="submit">Confirm Dummy Payment</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden fixed right-4 top-20 z-50 rounded-lg bg-slate-900 text-white px-4 py-3 text-sm shadow-xl"></div>
+
+  <script>
+    const sharedBookingsKey = 'smartCityCitizenBookings';
+    const paymentBody = document.getElementById('paymentBody');
+    const toast = document.getElementById('toast');
+    const sessionBadge = document.getElementById('sessionBadge');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const paymentModal = document.getElementById('paymentModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const paymentForm = document.getElementById('paymentForm');
+    const paymentRefText = document.getElementById('paymentRefText');
+    const paymentNote = document.getElementById('paymentNote');
+    const providerWrap = document.getElementById('providerWrap');
+    const providerSelect = document.getElementById('providerSelect');
+
+    let currentPaymentIndex = null;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2000);
+    }
+
+    function renderSession() {
+      const sessionRaw = localStorage.getItem('smartCitySession');
+      if (!sessionRaw) return;
+      try {
+        const session = JSON.parse(sessionRaw);
+        if (!session?.role || !session?.email) return;
+        if (session.role === 'citizen') {
+          window.location.href = 'index.html';
+          return;
+        }
+        sessionBadge.textContent = `${session.role.toUpperCase()} · ${session.email}`;
+        sessionBadge.classList.remove('hidden');
+        logoutBtn.classList.remove('hidden');
+      } catch {
+        // ignore malformed session
+      }
+    }
+
+    function estimateAmount(item) {
+      if (item.type === 'document_request') return 120;
+      return 250;
+    }
+
+    function loadBookings() {
+      return JSON.parse(localStorage.getItem(sharedBookingsKey) || '[]');
+    }
+
+    function getTimelineStage(item) {
+      if (item.status === 'Completed') return 3;
+      if ((item.paymentStatus || '').toLowerCase().includes('paid') || (item.paymentStatus || '').toLowerCase().includes('cash')) return 2;
+      if ((item.status || '').toLowerCase().includes('confirm')) return 1;
+      return 0;
+    }
+
+    function timelineMarkup(item) {
+      const stages = ['Requested', 'Confirmed', 'Paid', 'Completed'];
+      const stage = getTimelineStage(item);
+      return `<div class="flex flex-wrap gap-1">${stages
+        .map((label, index) => `<span class="px-2 py-0.5 rounded text-[10px] font-semibold ${index <= stage ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}">${label}</span>`)
+        .join('')}</div>`;
+    }
+
+    function saveBookings(items) {
+      localStorage.setItem(sharedBookingsKey, JSON.stringify(items));
+    }
+
+    function openPaymentModal(item, index, amount) {
+      currentPaymentIndex = index;
+      paymentRefText.textContent = `Ref: ${item.id || 'N/A'} • Ticket: ${item.ticketId || 'N/A'} • Amount: ₱${amount}`;
+      paymentNote.textContent = 'Cash option: pay physically at City Hall cashier. Online option: proceed to designated window number after payment.';
+      providerWrap.classList.add('hidden');
+      paymentModal.classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+      paymentModal.classList.add('hidden');
+      currentPaymentIndex = null;
+      paymentForm.reset();
+      providerWrap.classList.add('hidden');
+    }
+
+    function renderPayments() {
+      const items = loadBookings();
+      paymentBody.innerHTML = items.length
+        ? items.map((item, index) => {
+          const type = item.type === 'document_request' ? 'Document Request' : 'F2F Payment';
+          const serviceLabel = item.type === 'document_request'
+            ? `${item.documentType || 'Document'} (${item.purpose || 'N/A'})`
+            : item.service;
+          const amount = estimateAmount(item);
+          return `<tr class="bg-white">
+            <td class="p-3">${item.id || '—'}</td>
+            <td class="p-3">${item.ticketId || 'N/A'}</td>
+            <td class="p-3">${type}</td>
+            <td class="p-3">${serviceLabel || '—'}</td>
+            <td class="p-3">${item.date || '—'} ${item.time ? `at ${item.time}` : ''}</td>
+            <td class="p-3">₱${amount}</td>
+            <td class="p-3">${item.paymentStatus || 'Unpaid'}<br><span class="text-xs text-slate-500">${item.windowNumber || 'Window TBA'}</span></td>
+            <td class="p-3">${timelineMarkup(item)}</td>
+            <td class="p-3">
+              <button data-pay-index="${index}" class="pay-btn rounded-md bg-brand-green text-white px-3 py-1.5 text-xs ${((item.paymentStatus || '').toLowerCase().includes('paid') || (item.paymentStatus || '').toLowerCase().includes('cash')) ? 'opacity-60 cursor-not-allowed' : ''}" ${((item.paymentStatus || '').toLowerCase().includes('paid') || (item.paymentStatus || '').toLowerCase().includes('cash')) ? 'disabled' : ''}>Pay Now</button>
+            </td>
+          </tr>`;
+        }).join('')
+        : '<tr><td colspan="9" class="p-4 text-slate-500">No bookings yet. Create a booking in the citizen portal first.</td></tr>';
+    }
+
+    paymentBody.addEventListener('click', (event) => {
+      const button = event.target.closest('.pay-btn');
+      if (!button) return;
+      const index = Number(button.dataset.payIndex);
+      const items = loadBookings();
+      if (!items[index]) return;
+      openPaymentModal(items[index], index, estimateAmount(items[index]));
+    });
+
+    paymentForm.addEventListener('change', (event) => {
+      if (event.target.name !== 'method') return;
+      if (event.target.value === 'online') {
+        providerWrap.classList.remove('hidden');
+        paymentNote.textContent = 'Online selected: you will be directed to a designated city hall validation window after payment.';
+      } else {
+        providerWrap.classList.add('hidden');
+        paymentNote.textContent = 'Cash selected: pay through City Hall cashier on your schedule.';
+      }
+    });
+
+    paymentForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (currentPaymentIndex === null) return;
+      const items = loadBookings();
+      const item = items[currentPaymentIndex];
+      if (!item) return;
+
+      const method = paymentForm.querySelector('input[name="method"]:checked')?.value || 'cash';
+      if (method === 'cash') {
+        item.paymentStatus = 'Cash - Pay at City Hall';
+        item.paymentMethod = 'Cash';
+        item.windowNumber = 'City Hall Cashier';
+      } else {
+        const windowNo = `Window ${Math.floor(Math.random() * 5) + 1}`;
+        item.paymentStatus = 'Paid Online';
+        item.paymentMethod = `Online (${providerSelect.value})`;
+        item.windowNumber = windowNo;
+      }
+
+      item.status = item.status || 'Payment Submitted • Pending Admin Confirmation';
+      saveBookings(items);
+      closePaymentModal();
+      renderPayments();
+      showToast(`Payment synced for ${item.id || 'booking'} (${item.ticketId || 'no ticket'}).`);
+    });
+
+    closeModalBtn.addEventListener('click', closePaymentModal);
+    paymentModal.addEventListener('click', (event) => {
+      if (event.target === paymentModal) closePaymentModal();
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('smartCitySession');
+      showToast('Logged out.');
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 500);
+    });
+
+    renderSession();
+    renderPayments();
+  </script>
+</body>
+</html>

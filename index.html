@@ -1,0 +1,2773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart City Web App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              blue: '#1E3A8A',
+              sky: '#0EA5E9',
+              orange: '#F97316',
+              green: '#16A34A'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --panel-bg: #ffffff;
+      --panel-border: #dbe4ef;
+      --panel-soft: #f8fbff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --focus-ring: #38bdf8;
+      --soft-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: linear-gradient(180deg, #edf3ff 0%, #f8fbff 35%, #f2f6fb 100%); color: var(--text-main); }
+    .elev-card { transition: transform .2s ease, box-shadow .2s ease; }
+    .elev-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15, 23, 42, .10); }
+    .service-card.active { border-color: #1E3A8A; box-shadow: 0 0 0 2px rgba(30, 58, 138, .15) inset; }
+    .citizen-shell section { background: var(--panel-bg); border: 1px solid var(--panel-border); box-shadow: var(--soft-shadow); }
+    .citizen-shell section { position: relative; overflow: hidden; }
+    .citizen-shell section::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #1E3A8A 0%, #0EA5E9 48%, #16A34A 100%);
+      opacity: 0.35;
+    }
+    .citizen-shell section h2,
+    .citizen-shell section h3 { letter-spacing: -0.01em; color: var(--text-main); }
+    .section-title-polish {
+      display: inline-flex;
+      align-items: flex-start;
+      gap: .45rem;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      max-width: 100%;
+    }
+    .section-icon-dot {
+      width: 1.35rem;
+      height: 1.35rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #dbeafe;
+      color: #1E3A8A;
+      font-size: .82rem;
+      font-weight: 700;
+      border: 1px solid #bfdbfe;
+      margin-top: .2rem;
+      flex: 0 0 auto;
+    }
+    .section-title-polish > span:last-child { line-height: 1.25; }
+    .citizen-shell section p,
+    .citizen-shell section span,
+    .citizen-shell section li { color: var(--text-muted); }
+    .hero-chip { background: linear-gradient(90deg, #dbeafe, #eff6ff); }
+    .section-pulse { animation: sectionPulse 1.2s ease; }
+    @keyframes sectionPulse {
+      0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, .35); }
+      100% { box-shadow: 0 0 0 14px rgba(22, 163, 74, 0); }
+    }
+    .archive-filter.active, .archive-doc-filter.active { background: #1E3A8A; color: white; border-color: #1E3A8A; }
+    .request-inactive { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #64748b; }
+    .status-chip { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; display: inline-flex; align-items: center; }
+    .status-active { background: #DCFCE7; color: #166534; }
+    .status-cancelled { background: #FEE2E2; color: #991B1B; }
+    .status-declined { background: #FFE4E6; color: #9F1239; }
+    .status-refunded { background: #E0E7FF; color: #3730A3; }
+    .focus-ring:focus-visible { outline: 3px solid #0EA5E9; outline-offset: 2px; }
+    button,
+    a.inline-flex,
+    .rounded-lg,
+    .rounded-md { transition: all .18s ease; }
+    button:hover,
+    a.inline-flex:hover { transform: translateY(-1px); }
+    input,
+    select,
+    textarea {
+      border-color: #cbd5e1 !important;
+      background: #ffffff !important;
+      color: var(--text-main);
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+    table { border-radius: 14px; overflow: hidden; }
+    thead th { font-weight: 700; letter-spacing: 0.01em; }
+    #mobileMenu a { border-radius: 8px; padding-left: 8px; }
+    #mobileMenu a:hover { background: rgba(255,255,255,0.08); }
+    .mobile-menu-group summary { list-style: none; cursor: pointer; }
+    .mobile-menu-group summary::-webkit-details-marker { display: none; }
+    .mobile-menu-chevron { transition: transform .2s ease; display: inline-flex; }
+    .mobile-menu-group[open] .mobile-menu-chevron { transform: rotate(180deg); }
+    .quick-jump-bar { backdrop-filter: blur(6px); }
+    .compact-request-card details > summary { cursor: pointer; }
+    .compact-request-card details > summary::-webkit-details-marker { display: none; }
+    .skip-link { position: absolute; left: 0; top: -100px; background: #1E3A8A; color: #fff; padding: 8px 12px; z-index: 60; border-radius: 0 0 8px 0; }
+    .skip-link:focus { top: 0; }
+
+    @media (max-width: 1024px) {
+      .citizen-shell { padding-top: 1.25rem !important; }
+      .citizen-shell section { padding: 1rem !important; }
+      .citizen-shell h2 { font-size: 1.25rem !important; }
+    }
+
+    @media (max-width: 640px) {
+      .citizen-shell section { border-radius: 14px !important; }
+      .citizen-shell .grid { gap: .75rem !important; }
+      #toast { left: 0.75rem; right: 0.75rem; top: auto; bottom: 0.75rem; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+  <a href="#home" class="skip-link focus-ring">Skip to main content</a>
+  <header class="bg-brand-blue text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="h-16 flex items-center justify-between gap-3">
+        <a href="#home" class="flex items-center gap-3">
+          <img src="city-logo.jpg" alt="City government logo" class="h-10 w-10 rounded-full border-2 border-amber-400 bg-white object-cover" />
+          <div>
+            <p class="font-bold leading-tight">San Pedro Smart City</p>
+            <p class="text-[11px] text-blue-200 leading-tight">Citizen Portal • Laguna 4023</p>
+          </div>
+        </a>
+
+        <nav class="hidden xl:flex items-center gap-4 text-sm font-semibold">
+          <a href="#home" class="hover:text-blue-200">Home</a>
+          <a href="#services" class="hover:text-blue-200">Services</a>
+          <a href="#appointments" class="hover:text-blue-200">Appointments</a>
+          <a href="#documents" class="hover:text-blue-200">Documents</a>
+          <a href="#emergency" class="hover:text-blue-200">Emergency</a>
+          <a href="#suggestions" class="hover:text-blue-200">Suggestions</a>
+          <a href="#followup" class="hover:text-blue-200">Follow-up</a>
+          <a href="#announcements" class="hover:text-blue-200">Announcements</a>
+          <a href="#gallery" class="hover:text-blue-200">Gallery</a>
+        </nav>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="sessionBadge" class="hidden sm:inline-flex px-2.5 py-1 rounded-md bg-blue-900 text-[11px]"></span>
+          <a href="login.html" class="hidden md:inline-flex px-3 py-2 text-xs rounded-md bg-blue-800 hover:bg-blue-700">Login</a>
+          <button id="logoutBtn" class="hidden sm:inline-flex px-3 py-2 text-xs rounded-md bg-red-600 hover:bg-red-500">Logout</button>
+          <button id="themeBtn" class="hidden sm:inline-flex px-3 py-2 text-xs rounded-md bg-blue-800 hover:bg-blue-700">Toggle Theme</button>
+          <button
+            id="mobileMenuBtn"
+            class="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            aria-label="Toggle mobile menu"
+            aria-expanded="false"
+          >
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="mobileMenu" class="lg:hidden hidden border-t border-blue-800 bg-brand-blue">
+      <div class="px-4 py-3 space-y-2 text-sm font-medium">
+        <details class="mobile-menu-group rounded-lg border border-blue-700/70" open>
+          <summary class="flex items-center justify-between px-3 py-2 text-blue-100">
+            <span>Quick Access</span>
+            <span class="mobile-menu-chevron" aria-hidden="true">▾</span>
+          </summary>
+          <div class="px-2 pb-2 grid grid-cols-2 gap-2">
+            <a href="#home" class="py-2 hover:text-blue-200">Home</a>
+            <a href="#dashboard" class="py-2 hover:text-blue-200">Dashboard</a>
+          </div>
+        </details>
+
+        <details class="mobile-menu-group rounded-lg border border-blue-700/70">
+          <summary class="flex items-center justify-between px-3 py-2 text-blue-100">
+            <span>Transactions</span>
+            <span class="mobile-menu-chevron" aria-hidden="true">▾</span>
+          </summary>
+          <div class="px-2 pb-2 grid grid-cols-2 gap-2">
+            <a href="#services" class="py-2 hover:text-blue-200">Services</a>
+            <a href="#appointments" class="py-2 hover:text-blue-200">Appointments</a>
+            <a href="#documents" class="py-2 hover:text-blue-200">Documents</a>
+            <a href="#emergency" class="py-2 hover:text-blue-200">Emergency</a>
+          </div>
+        </details>
+
+        <details class="mobile-menu-group rounded-lg border border-blue-700/70">
+          <summary class="flex items-center justify-between px-3 py-2 text-blue-100">
+            <span>Community</span>
+            <span class="mobile-menu-chevron" aria-hidden="true">▾</span>
+          </summary>
+          <div class="px-2 pb-2 grid grid-cols-2 gap-2">
+            <a href="#suggestions" class="py-2 hover:text-blue-200">Suggestions</a>
+            <a href="#followup" class="py-2 hover:text-blue-200">Follow-up</a>
+            <a href="#announcements" class="py-2 hover:text-blue-200">Announcements</a>
+            <a href="#gallery" class="py-2 hover:text-blue-200">Gallery</a>
+          </div>
+        </details>
+
+        <details class="mobile-menu-group rounded-lg border border-blue-700/70">
+          <summary class="flex items-center justify-between px-3 py-2 text-blue-100">
+            <span>Support</span>
+            <span class="mobile-menu-chevron" aria-hidden="true">▾</span>
+          </summary>
+          <div class="px-2 pb-2 grid grid-cols-2 gap-2">
+            <a href="#customerService" class="py-2 hover:text-blue-200">Customer Service</a>
+            <a href="login.html" class="py-2 hover:text-blue-200">Login</a>
+          </div>
+        </details>
+      </div>
+    </div>
+  </header>
+
+  <div class="quick-jump-bar sticky top-16 z-40 border-b border-slate-200 bg-white/95">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center gap-2 text-sm">
+      <span class="text-slate-600 font-semibold">Quick Jump:</span>
+      <select id="quickJumpSelect" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm">
+        <option value="">Select section...</option>
+        <option value="dashboard">Dashboard</option>
+        <option value="appointments">Appointments</option>
+        <option value="documents">Documents</option>
+        <option value="customerService">Customer Service</option>
+        <option value="followup">Follow-up</option>
+        <option value="queue">Queue Monitor</option>
+        <option value="permits">Permit Tracker</option>
+        <option value="announcements">Announcements</option>
+        <option value="suggestions">Suggestions</option>
+        <option value="incidents">Incidents</option>
+      </select>
+      <button id="quickJumpBtn" class="rounded-md bg-brand-blue text-white px-3 py-1.5 text-xs font-semibold hover:bg-blue-800">Go</button>
+      <button id="quickTopBtn" class="rounded-md bg-slate-100 text-slate-700 px-3 py-1.5 text-xs font-semibold hover:bg-slate-200">Top ↑</button>
+    </div>
+  </div>
+
+  <main id="home" class="citizen-shell max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-10">
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-10">
+      <div class="grid lg:grid-cols-2 gap-8 items-center">
+        <div>
+          <p class="hero-chip inline-flex items-center rounded-full text-brand-blue text-xs font-semibold px-3 py-1 mb-4">Welcome, San Pedro Citizens</p>
+          <h1 class="text-3xl md:text-4xl font-extrabold leading-tight text-slate-900">SAN PEDRO SMART CITY PORTAL</h1>
+          <p class="mt-4 text-slate-600 text-base md:text-lg max-w-xl">Your one-stop portal for appointments, document requests, payments, updates, and direct community suggestions to improve San Pedro City services.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <button id="ctaBtn" class="inline-flex items-center justify-center rounded-lg bg-brand-green text-white font-semibold px-6 py-3 hover:bg-green-700 transition shadow-sm">Launch Citizen Journey</button>
+            <a href="#dashboard" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold px-6 py-3 hover:bg-slate-50 transition">Open Dashboard</a>
+            <a href="login.html" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold px-6 py-3 hover:bg-slate-50 transition">Role Login</a>
+          </div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <img src="hero-frame.jpg" alt="Smart city hero placeholder from Figma export" class="w-full h-64 md:h-80 object-cover rounded-lg" />
+        </div>
+      </div>
+    </section>
+
+    <section id="dashboard" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <article class="elev-card bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Permit Applications</p>
+        <p class="text-3xl font-bold mt-2 text-brand-blue" id="statPermits">24</p>
+      </article>
+      <article class="elev-card bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Appointments Today</p>
+        <p class="text-3xl font-bold mt-2 text-brand-green" id="statAppointments">18</p>
+      </article>
+      <article class="elev-card bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Queue Check-ins</p>
+        <p class="text-3xl font-bold mt-2 text-brand-orange" id="statCheckins">15</p>
+      </article>
+      <article class="elev-card bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Published Announcements</p>
+        <p class="text-3xl font-bold mt-2 text-rose-500" id="statAnnouncements">3</p>
+      </article>
+    </section>
+
+    <section id="emergency" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div id="emergencyBanner" class="hidden rounded-xl border border-red-300 bg-red-50 p-4">
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p id="emergencyLevelBadge" class="inline-flex text-[11px] font-semibold uppercase tracking-wide rounded-full bg-red-100 text-red-700 px-2 py-0.5">Emergency</p>
+            <h2 id="emergencyTitle" class="text-xl font-bold text-red-800 mt-2">Emergency Operations Mode Active</h2>
+            <p id="emergencyMessage" class="text-sm text-red-700 mt-1">City emergency protocol is active. Use the quick help form below for urgent assistance.</p>
+          </div>
+          <div class="rounded-lg bg-white border border-red-200 p-3 text-sm text-red-700">
+            <p class="font-semibold">Emergency Hotline</p>
+            <p id="emergencyHotline" class="text-lg font-bold mt-1">911</p>
+          </div>
+        </div>
+      </div>
+      <div id="emergencyInactive" class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+        Emergency Operations Mode is currently inactive. You can still use regular city services.
+      </div>
+      <div class="grid xl:grid-cols-2 gap-4 mt-4">
+        <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <h3 class="font-semibold">I Need Help Now</h3>
+          <p class="text-xs text-slate-500 mt-1">For active incidents only. This sends a priority ticket to the admin emergency desk.</p>
+          <form id="emergencyHelpForm" class="mt-3 space-y-2">
+            <select id="emergencyNeedType" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" required>
+              <option value="">Select emergency type</option>
+              <option>Medical Assistance</option>
+              <option>Fire Incident</option>
+              <option>Flood / Rescue</option>
+              <option>Road Accident</option>
+              <option>Security Concern</option>
+            </select>
+            <input id="emergencyNeedLocation" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" placeholder="Current location / landmark" required />
+            <textarea id="emergencyNeedDetails" rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" placeholder="Short details (people affected, urgency, condition)" required></textarea>
+            <button id="emergencyHelpBtn" type="submit" class="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-semibold hover:bg-red-700">Submit Priority Help Ticket</button>
+          </form>
+        </article>
+        <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <h3 class="font-semibold">Emergency Ticket Updates</h3>
+          <ul id="emergencyHelpList" class="mt-3 space-y-2 text-sm"></ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="cityPulse" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-bold text-slate-900">City Pulse</h2>
+        <button id="refreshCityPulseBtn" class="focus-ring text-xs rounded-md bg-slate-100 px-3 py-1.5 hover:bg-slate-200">Refresh AI Forecast</button>
+      </div>
+      <div class="grid md:grid-cols-3 gap-3 text-sm">
+        <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-slate-500">Predicted Queue Peak</p>
+          <p id="pulseQueuePeak" class="text-xl font-bold text-brand-orange">10:30 AM</p>
+          <p class="text-xs text-slate-500 mt-1">Best arrival window is 8:00–9:00 AM.</p>
+        </article>
+        <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-slate-500">Estimated Service Delay</p>
+          <p id="pulseDelay" class="text-xl font-bold text-brand-blue">12 mins</p>
+          <p class="text-xs text-slate-500 mt-1">Based on live request and queue load.</p>
+        </article>
+        <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-slate-500">System Health</p>
+          <p id="pulseHealth" class="text-xl font-bold text-brand-green">Stable</p>
+          <p class="text-xs text-slate-500 mt-1">Payment, booking, and ticket services online.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="smartInbox" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <h2 class="text-2xl font-bold text-slate-900">Smart Notifications</h2>
+        <button id="markNotificationsReadBtn" class="text-xs rounded-md bg-slate-100 px-3 py-1.5 hover:bg-slate-200">Mark all as read</button>
+      </div>
+      <ul id="notificationList" class="space-y-2 text-sm"></ul>
+    </section>
+
+    <section id="citizenControls" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="grid md:grid-cols-3 gap-3 text-sm">
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <label for="languageSelect" class="font-semibold">Language Mode</label>
+          <select id="languageSelect" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2">
+            <option value="en">English</option>
+            <option value="fil">Filipino</option>
+          </select>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p class="font-semibold">Voice-Friendly Mode</p>
+          <button id="voiceModeBtn" class="mt-2 rounded-lg bg-brand-blue text-white px-4 py-2 font-semibold hover:bg-blue-800">Enable Voice Guidance</button>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p class="font-semibold">SMS-ready Notifications</p>
+          <label class="mt-2 flex items-center gap-2">
+            <input id="smsOptIn" type="checkbox" />
+            <span>Send critical alerts as SMS-ready logs</span>
+          </label>
+        </div>
+      </div>
+      <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <h3 class="font-semibold mb-2">SMS Outbox Preview</h3>
+        <ul id="smsLogList" class="space-y-2 text-sm"></ul>
+      </div>
+    </section>
+
+    <section id="profile" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-bold text-slate-900">Resident Profile</h2>
+        <span class="text-xs text-slate-500">Saved profile auto-fills forms</span>
+      </div>
+      <form id="profileForm" class="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
+        <input id="profileName" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Full Name" required />
+        <input id="profileEmail" type="email" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Email" required />
+        <input id="profilePhone" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Mobile Number" required />
+        <select id="profileBarangay" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" required>
+          <option value="">Select Barangay</option>
+          <option>Barangay Nueva</option>
+          <option>Barangay San Antonio</option>
+          <option>Barangay United Bayanihan</option>
+          <option>Barangay Landayan</option>
+          <option>Barangay Pacita 1</option>
+          <option>Barangay Pacita 2</option>
+        </select>
+        <div class="xl:col-span-4">
+          <button type="submit" class="rounded-lg bg-brand-green text-white px-4 py-2 font-semibold hover:bg-green-700">Save Profile</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="services" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-4 mb-5">
+        <h2 class="text-2xl font-bold text-slate-900">Smart City Services (Mga Serbisyo ng Lungsod)</h2>
+        <span class="text-xs text-slate-500">Citizen-facing modules • Para sa mamamayan</span>
+      </div>
+      <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <article data-service-target="permits" class="service-card border border-slate-200 rounded-xl p-4 bg-slate-50 cursor-pointer">
+          <h3 class="font-semibold">Permit Processing (Pagproseso ng Permit)</h3>
+          <p class="text-sm text-slate-600 mt-1">Apply, review status, and receive updates. (Mag-apply, subaybayan ang status, at tumanggap ng update.)</p>
+        </article>
+        <article data-service-target="appointments" class="service-card border border-slate-200 rounded-xl p-4 bg-slate-50 cursor-pointer">
+          <h3 class="font-semibold flex items-center gap-2">Face-to-Face Payment (Harapang Bayad)<span id="appointmentsDraftBadge" class="hidden text-[10px] rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">Unsaved Draft</span></h3>
+          <p class="text-sm text-slate-600 mt-1">Book in-person payment slots with reminders. (Mag-book ng oras ng bayad na may paalala.)</p>
+        </article>
+        <article data-service-target="documents" class="service-card border border-slate-200 rounded-xl p-4 bg-slate-50 cursor-pointer">
+          <h3 class="font-semibold flex items-center gap-2">Document Claim Appointment (Iskedyul sa Pag-claim ng Dokumento)<span id="documentsDraftBadge" class="hidden text-[10px] rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">Unsaved Draft</span></h3>
+          <p class="text-sm text-slate-600 mt-1">Request city hall documents and reserve a pickup schedule. (Humiling ng dokumento at magpareserba ng iskedyul ng pagkuha.)</p>
+        </article>
+        <article data-service-target="queue" class="service-card border border-slate-200 rounded-xl p-4 bg-slate-50 cursor-pointer">
+          <h3 class="font-semibold">Queue Monitoring (Pagsubaybay sa Pila)</h3>
+          <p class="text-sm text-slate-600 mt-1">Track waiting, no-show, and checked-in counters. (Subaybayan ang naghihintay, no-show, at checked-in.)</p>
+        </article>
+        <article data-service-target="customerService" class="service-card border border-slate-200 rounded-xl p-4 bg-slate-50 cursor-pointer">
+          <h3 class="font-semibold">Customer Service Desk (Tanggapan ng Serbisyo sa Mamamayan)</h3>
+          <p class="text-sm text-slate-600 mt-1">Create support tickets, request callback, and track responses. (Gumawa ng ticket, humiling ng tawag pabalik, at subaybayan ang tugon.)</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="grid xl:grid-cols-2 gap-6">
+      <article id="appointments" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-xl font-bold text-slate-900 mb-4">Book Face-to-Face Payment (Mag-book ng Harapang Bayad)</h2>
+        <form id="appointmentForm" class="space-y-3">
+          <div>
+            <label for="apptName" class="text-sm font-medium text-slate-700">Full Name</label>
+            <input id="apptName" type="text" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Enter full name" />
+          </div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label for="apptDate" class="text-sm font-medium text-slate-700">Date</label>
+              <input id="apptDate" type="date" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" />
+            </div>
+            <div>
+              <label for="apptTime" class="text-sm font-medium text-slate-700">Time</label>
+              <div class="mt-1 grid grid-cols-3 gap-2">
+                <select id="apptHour" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" aria-label="Appointment hour">
+                  <option value="">HH</option>
+                  <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option>
+                  <option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                </select>
+                <select id="apptMinute" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" aria-label="Appointment minutes">
+                  <option value="">MM</option>
+                  <option value="00">00</option>
+                  <option value="30">30</option>
+                </select>
+                <select id="apptMeridiem" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" aria-label="Appointment meridiem">
+                  <option value="">AM/PM</option>
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label for="apptService" class="text-sm font-medium text-slate-700">Service</label>
+            <select id="apptService" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2">
+              <option value="">Select service</option>
+              <option>Building Permit</option>
+              <option>Business Permit</option>
+              <option>Parking Registration</option>
+            </select>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label for="apptCitizenType" class="text-sm font-medium text-slate-700">Citizen Type (for priority routing)</label>
+              <select id="apptCitizenType" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2">
+                <option value="regular">Regular</option>
+                <option value="senior">Senior Citizen</option>
+                <option value="pwd">Person with Disability (PWD)</option>
+                <option value="pregnant">Pregnant</option>
+                <option value="solo_parent">Solo Parent</option>
+              </select>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 flex items-center">
+              <label class="flex items-center gap-2 text-sm">
+                <input id="apptUrgentFlag" type="checkbox" />
+                Mark as urgent concern
+              </label>
+            </div>
+          </div>
+          <div>
+            <label for="apptPriorityNote" class="text-sm font-medium text-slate-700">Priority Note (optional)</label>
+            <textarea id="apptPriorityNote" rows="2" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Example: Senior citizen with mobility concern"></textarea>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="submit" class="w-full sm:w-auto rounded-lg bg-brand-green text-white font-semibold px-6 py-3 hover:bg-green-700">Book Appointment</button>
+            <button id="saveApptDraftBtn" type="button" class="w-full sm:w-auto rounded-lg bg-slate-200 text-slate-700 font-semibold px-4 py-3 hover:bg-slate-300">Save Draft</button>
+            <button id="clearApptDraftBtn" type="button" class="w-full sm:w-auto rounded-lg bg-slate-100 text-slate-600 font-semibold px-4 py-3 hover:bg-slate-200">Clear Draft</button>
+          </div>
+          <p id="apptDraftStatus" class="text-xs text-slate-500">Draft mode ready.</p>
+          <div id="apptRebookingSuggestions" class="hidden rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm"></div>
+        </form>
+        <div class="mt-5">
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <h3 class="font-semibold">Upcoming Bookings</h3>
+            <button id="viewAllBookingsBtn" class="text-xs rounded-md bg-slate-100 px-3 py-1.5 hover:bg-slate-200">View All</button>
+          </div>
+          <ul id="appointmentList" class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 text-sm"></ul>
+        </div>
+      </article>
+
+      <article id="announcements" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-xl font-bold text-slate-900 mb-2">Announcements Feed</h2>
+        <p class="text-xs text-slate-500 mb-4">Read-only for citizens. Announcements are published by admin.</p>
+        <div class="mb-3">
+          <label for="barangayFilter" class="text-xs text-slate-500">Filter by area</label>
+          <select id="barangayFilter" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm">
+            <option value="all">All City Announcements</option>
+            <option>Barangay Nueva</option>
+            <option>Barangay San Antonio</option>
+            <option>Barangay United Bayanihan</option>
+            <option>Barangay Landayan</option>
+            <option>Barangay Pacita 1</option>
+            <option>Barangay Pacita 2</option>
+          </select>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">Latest Posts</h3>
+          <ul id="announcementList" class="space-y-2 text-sm"></ul>
+        </div>
+      </article>
+    </section>
+
+    <section id="documents" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-bold text-slate-900">City Hall Document Request + Pickup Appointment (Kahilingan ng Dokumento at Iskedyul ng Pag-claim)</h2>
+      </div>
+      <form id="documentRequestForm" class="grid md:grid-cols-2 gap-3">
+        <div>
+          <label for="docName" class="text-sm font-medium text-slate-700">Full Name</label>
+          <input id="docName" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Enter full name" />
+        </div>
+        <div>
+          <label for="docType" class="text-sm font-medium text-slate-700">Document Type</label>
+          <select id="docType" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2">
+            <option value="">Select document</option>
+            <option>Barangay Clearance</option>
+            <option>Business Permit Copy</option>
+            <option>Cedula / Community Tax Certificate</option>
+            <option>Civil Registry Copy</option>
+          </select>
+        </div>
+        <div>
+          <label for="docPurpose" class="text-sm font-medium text-slate-700">Purpose</label>
+          <input id="docPurpose" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Employment, scholarship, etc." />
+        </div>
+        <div>
+          <label for="docEmail" class="text-sm font-medium text-slate-700">Email</label>
+          <input id="docEmail" type="email" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="you@example.com" />
+        </div>
+        <div>
+          <label for="docDate" class="text-sm font-medium text-slate-700">Pickup Date</label>
+          <input id="docDate" type="date" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" />
+        </div>
+        <div>
+          <label for="docTime" class="text-sm font-medium text-slate-700">Pickup Time</label>
+          <div class="mt-1 grid grid-cols-3 gap-2">
+            <select id="docHour" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" aria-label="Pickup hour">
+              <option value="">HH</option>
+              <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option>
+              <option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            </select>
+            <select id="docMinute" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" aria-label="Pickup minutes">
+              <option value="">MM</option>
+              <option value="00">00</option>
+              <option value="30">30</option>
+            </select>
+            <select id="docMeridiem" required class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" aria-label="Pickup meridiem">
+              <option value="">AM/PM</option>
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="docCitizenType" class="text-sm font-medium text-slate-700">Citizen Type (for priority routing)</label>
+          <select id="docCitizenType" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2">
+            <option value="regular">Regular</option>
+            <option value="senior">Senior Citizen</option>
+            <option value="pwd">Person with Disability (PWD)</option>
+            <option value="pregnant">Pregnant</option>
+            <option value="solo_parent">Solo Parent</option>
+          </select>
+        </div>
+        <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 flex items-center">
+          <label class="flex items-center gap-2 text-sm">
+            <input id="docUrgentFlag" type="checkbox" />
+            Mark as urgent concern
+          </label>
+        </div>
+        <div class="md:col-span-2">
+          <label for="docPriorityNote" class="text-sm font-medium text-slate-700">Priority Note (optional)</label>
+          <textarea id="docPriorityNote" rows="2" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Example: PWD request with urgent travel deadline"></textarea>
+        </div>
+        <div class="md:col-span-2 flex flex-wrap gap-2">
+          <button type="submit" class="rounded-lg bg-brand-green text-white font-semibold px-6 py-3 hover:bg-green-700">Submit Request & Schedule</button>
+          <button id="saveDocDraftBtn" type="button" class="rounded-lg bg-slate-200 text-slate-700 font-semibold px-4 py-3 hover:bg-slate-300">Save Draft</button>
+          <button id="clearDocDraftBtn" type="button" class="rounded-lg bg-slate-100 text-slate-600 font-semibold px-4 py-3 hover:bg-slate-200">Clear Draft</button>
+        </div>
+        <div class="md:col-span-2">
+          <p id="docDraftStatus" class="text-xs text-slate-500">Draft mode ready.</p>
+          <div id="docRebookingSuggestions" class="hidden rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm mt-2"></div>
+        </div>
+      </form>
+      <div class="mt-5">
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <h3 class="font-semibold">My Document Requests</h3>
+          <button id="viewAllDocsBtn" class="text-xs rounded-md bg-slate-100 px-3 py-1.5 hover:bg-slate-200">View All</button>
+        </div>
+        <ul id="documentRequestList" class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 text-sm"></ul>
+      </div>
+    </section>
+
+    <section id="customerService" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-bold text-slate-900">Customer Service Center (Sentro ng Serbisyo sa Mamamayan)</h2>
+        <span class="text-xs text-slate-500">Hotline + callback + ticketing • Tulong sa tawag at ticket</span>
+      </div>
+      <div class="grid xl:grid-cols-2 gap-5">
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <h3 class="font-semibold">Get Assistance Now (Humingi ng Tulong Ngayon)</h3>
+          <p class="text-sm text-slate-600">Hotline: <strong>(02) 1234-5678</strong> • Email: <strong>help@sanpedro.gov.ph</strong></p>
+          <button id="startLiveChatBtn" class="rounded-lg bg-brand-blue text-white font-semibold px-4 py-2 hover:bg-blue-800">Start Live Chat (Dummy) • Simulan ang Chat</button>
+          <p class="text-xs text-slate-500">This is a demo interaction and stores no external data.</p>
+        </div>
+        <form id="customerServiceForm" class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <h3 class="font-semibold">Request Callback (Humiling ng Tawag Pabalik)</h3>
+          <input id="csName" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Full Name" />
+          <input id="csContact" required class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Phone Number" />
+          <textarea id="csConcern" required rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Brief concern"></textarea>
+          <button class="rounded-lg bg-brand-green text-white font-semibold px-4 py-2 hover:bg-green-700" type="submit">Submit Customer Service Ticket (Isumite ang Ticket)</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="followup" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-bold text-slate-900">Request Follow-up Center (Sentro ng Follow-up ng Kahilingan)</h2>
+        <p class="text-xs text-slate-500">Track permits, documents, and service concerns in one place</p>
+      </div>
+
+      <div class="grid xl:grid-cols-2 gap-5">
+        <form id="followupForm" class="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <h3 class="font-semibold">Create Follow-up Ticket</h3>
+          <div>
+            <label for="followupRef" class="text-sm font-medium text-slate-700">Related Reference (optional)</label>
+            <input id="followupRef" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="PAY-123456 / DOC-123456 / AP-0921" />
+          </div>
+          <div>
+            <label for="followupCategory" class="text-sm font-medium text-slate-700">Category</label>
+            <select id="followupCategory" required class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2">
+              <option value="">Select category</option>
+              <option>Permit Follow-up</option>
+              <option>Document Request</option>
+              <option>Payment Concern</option>
+              <option>General Inquiry</option>
+            </select>
+          </div>
+          <div>
+            <label for="followupMessage" class="text-sm font-medium text-slate-700">Message</label>
+            <textarea id="followupMessage" required rows="3" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Tell us what you want to follow up."></textarea>
+          </div>
+          <button type="submit" class="rounded-lg bg-brand-blue text-white font-semibold px-5 py-2.5 hover:bg-blue-800">Submit Follow-up</button>
+        </form>
+
+        <div class="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <h3 class="font-semibold">Track by Ticket ID</h3>
+          <div class="flex gap-2">
+            <input id="followupSearchInput" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Enter ticket ID (e.g., TKT-123456)" />
+            <button id="followupSearchBtn" class="rounded-lg bg-brand-green text-white font-semibold px-4 py-2 hover:bg-green-700" type="button">Track</button>
+          </div>
+          <div id="followupSearchResult" class="text-sm text-slate-600">No search yet.</div>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <h3 class="font-semibold mb-2">My Follow-up Tickets</h3>
+        <ul id="followupList" class="space-y-2 text-sm"></ul>
+      </div>
+    </section>
+
+    <section id="timeline" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <h2 class="text-2xl font-bold text-slate-900">Unified Citizen Timeline</h2>
+        <button id="refreshTimelineBtn" class="text-xs rounded-md bg-slate-100 px-3 py-1.5 hover:bg-slate-200">Refresh</button>
+      </div>
+      <ul id="timelineList" class="space-y-2 text-sm"></ul>
+    </section>
+
+    <section id="feedback" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-bold text-slate-900">City Service Feedback</h2>
+        <span class="text-xs text-slate-500">Help improve smart-city services</span>
+      </div>
+      <div class="grid xl:grid-cols-2 gap-5">
+        <form id="feedbackForm" class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <div>
+            <label for="feedbackRef" class="text-sm font-medium">Reference</label>
+            <select id="feedbackRef" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2" required></select>
+          </div>
+          <div>
+            <label for="feedbackRating" class="text-sm font-medium">Rating</label>
+            <select id="feedbackRating" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2" required>
+              <option value="">Select rating</option>
+              <option value="5">⭐⭐⭐⭐⭐ - Excellent</option>
+              <option value="4">⭐⭐⭐⭐ - Good</option>
+              <option value="3">⭐⭐⭐ - Average</option>
+              <option value="2">⭐⭐ - Needs Improvement</option>
+              <option value="1">⭐ - Poor</option>
+            </select>
+          </div>
+          <textarea id="feedbackComment" rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Share your service experience..." required></textarea>
+          <button type="submit" class="rounded-lg bg-brand-blue text-white px-4 py-2 font-semibold hover:bg-blue-800">Submit Feedback</button>
+        </form>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <h3 class="font-semibold mb-2">My Submitted Feedback</h3>
+          <ul id="feedbackList" class="space-y-2 text-sm"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="suggestions" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-bold text-slate-900">Citizen Suggestion Box</h2>
+        <span class="text-xs text-slate-500">Vote, track status, and get admin responses</span>
+      </div>
+      <div class="grid xl:grid-cols-2 gap-5">
+        <form id="suggestionForm" class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <div>
+            <label for="suggestionCategory" class="text-sm font-medium">Category</label>
+            <select id="suggestionCategory" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2" required>
+              <option value="">Select category</option>
+              <option>Traffic and Transport</option>
+              <option>Public Safety</option>
+              <option>Environment</option>
+              <option>Digital Services</option>
+              <option>City Hall Experience</option>
+            </select>
+          </div>
+          <div>
+            <label for="suggestionInput" class="text-sm font-medium">Your Suggestion</label>
+            <textarea id="suggestionInput" rows="4" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Example: Add shaded waiting areas near city hall counters." required></textarea>
+          </div>
+          <button type="submit" class="rounded-lg bg-brand-green text-white font-semibold px-4 py-2 hover:bg-green-700">Submit Suggestion</button>
+        </form>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <h3 class="font-semibold mb-2">Recent Citizen Suggestions</h3>
+          <ul id="suggestionList" class="space-y-2 text-sm"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="incidents" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-bold text-slate-900">Incident Reporting</h2>
+        <span class="text-xs text-slate-500">Report flooding, streetlights, road damage, and more</span>
+      </div>
+      <div class="grid xl:grid-cols-2 gap-5">
+        <form id="incidentForm" class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <select id="incidentCategory" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" required>
+            <option value="">Category</option>
+            <option>Flooding</option>
+            <option>Streetlight Outage</option>
+            <option>Road Damage</option>
+            <option>Garbage Collection</option>
+            <option>Public Safety</option>
+          </select>
+          <input id="incidentLocation" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Location / Barangay" required />
+          <textarea id="incidentDetails" rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Describe the incident..." required></textarea>
+          <button type="submit" class="rounded-lg bg-brand-blue text-white px-4 py-2 font-semibold hover:bg-blue-800">Submit Incident Ticket</button>
+        </form>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <h3 class="font-semibold mb-2">My Incident Tickets</h3>
+          <ul id="incidentList" class="space-y-2 text-sm"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="mayor" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-bold text-slate-900">Mayor's Announcements</h2>
+        <span class="text-xs text-slate-500">Official bulletin feed</span>
+      </div>
+      <ul id="mayorAnnouncementList" class="space-y-2 text-sm"></ul>
+    </section>
+
+    <section id="queue" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h2 class="text-2xl font-bold text-slate-900 mb-1">Queue Monitor (Tagasubaybay ng Pila)</h2>
+      <p class="text-sm text-slate-600 mb-4">This helps citizens see real-time counter flow (Waiting, Checked-In, No-Show) so they can plan arrival and avoid long waits.</p>
+      <div class="overflow-auto rounded-xl border border-slate-200">
+        <table class="min-w-full text-sm">
+          <thead class="bg-brand-blue text-white">
+            <tr>
+              <th class="text-left p-3">ID</th>
+              <th class="text-left p-3">Name</th>
+              <th class="text-left p-3">Service</th>
+              <th class="text-left p-3">Status</th>
+              <th class="text-left p-3">Control</th>
+            </tr>
+          </thead>
+          <tbody id="queueBody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="permits" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">Permit Status Tracker (Tagasubaybay ng Katayuan ng Permit)</h2>
+          <p class="text-sm text-slate-600 mt-1">This shows permit progress per application ID so citizens know if a request is Pending, In Review, Approved, Revised, or Denied.</p>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-2">
+          <input id="permitSearch" type="text" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm" placeholder="Search applicant..." />
+          <select id="permitFilter" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm">
+            <option value="all">All Statuses</option>
+            <option>Pending</option>
+            <option>In Review</option>
+            <option>Approved</option>
+            <option>Revised</option>
+            <option>Denied</option>
+          </select>
+        </div>
+      </div>
+      <div class="overflow-auto rounded-xl border border-slate-200">
+        <table class="min-w-full text-sm">
+          <thead class="bg-brand-blue text-white">
+            <tr>
+              <th class="text-left p-3">ID</th>
+              <th class="text-left p-3">Applicant</th>
+              <th class="text-left p-3">Permit</th>
+              <th class="text-left p-3">Submitted</th>
+              <th class="text-left p-3">Status</th>
+            </tr>
+          </thead>
+          <tbody id="permitBody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="grid xl:grid-cols-2 gap-6">
+      <article class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-2xl font-bold text-slate-900 mb-3">Public Parking Map</h2>
+        <img src="parking-map-placeholder.jpg" alt="Public parking map placeholder" class="w-full h-72 object-cover rounded-xl border border-slate-200" />
+        <p class="text-sm text-slate-500 mt-3">Replace with your interactive map screenshot or embed later.</p>
+      </article>
+      <article class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-2xl font-bold text-slate-900 mb-3">Parking Availability</h2>
+        <div class="space-y-3 text-sm">
+          <div>
+            <div class="flex justify-between"><span>City Hall</span><span>72%</span></div>
+            <div class="h-2 bg-slate-200 rounded-full mt-1"><div class="h-2 bg-brand-green rounded-full" style="width:72%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between"><span>Public Market</span><span>48%</span></div>
+            <div class="h-2 bg-slate-200 rounded-full mt-1"><div class="h-2 bg-brand-orange rounded-full" style="width:48%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between"><span>Transport Hub</span><span>89%</span></div>
+            <div class="h-2 bg-slate-200 rounded-full mt-1"><div class="h-2 bg-rose-500 rounded-full" style="width:89%"></div></div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section id="gallery">
+      <div class="flex items-end justify-between gap-4 mb-5">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-900">San Pedro City Gallery</h2>
+        <p class="text-sm text-slate-500">Scenes inspired by San Pedro, Laguna 4023</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="https://images.unsplash.com/photo-1518391846015-55a9cc003b25?auto=format&fit=crop&w=1200&q=80" alt="Aerial city landscape near Laguna" class="w-full h-52 object-cover" /><div class="p-4"><h3 class="font-semibold text-slate-900">Urban Skyline</h3><p class="text-xs text-slate-500 mt-1">San Pedro growth corridor</p></div></article>
+        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="https://images.unsplash.com/photo-1470246973918-29a93221c455?auto=format&fit=crop&w=1200&q=80" alt="Sunset road and transport route" class="w-full h-52 object-cover" /><div class="p-4"><h3 class="font-semibold text-slate-900">Transport Routes</h3><p class="text-xs text-slate-500 mt-1">Community mobility and access</p></div></article>
+        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1200&q=80" alt="Public park and city greenery" class="w-full h-52 object-cover" /><div class="p-4"><h3 class="font-semibold text-slate-900">Green Public Spaces</h3><p class="text-xs text-slate-500 mt-1">Cleaner and healthier barangays</p></div></article>
+        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1200&q=80" alt="City hall style architecture" class="w-full h-52 object-cover" /><div class="p-4"><h3 class="font-semibold text-slate-900">Government Center</h3><p class="text-xs text-slate-500 mt-1">Citizen-first service delivery</p></div></article>
+        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&w=1200&q=80" alt="Night lights in a connected city" class="w-full h-52 object-cover" /><div class="p-4"><h3 class="font-semibold text-slate-900">Connected City Nights</h3><p class="text-xs text-slate-500 mt-1">Smart monitoring and safety</p></div></article>
+        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><img src="https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80" alt="Community neighborhood homes" class="w-full h-52 object-cover" /><div class="p-4"><h3 class="font-semibold text-slate-900">Neighborhood Communities</h3><p class="text-xs text-slate-500 mt-1">Inclusive living in Laguna 4023</p></div></article>
+      </div>
+    </section>
+
+    <section id="locator" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-3">
+        <h2 class="text-2xl font-bold text-slate-900">City Services Locator</h2>
+        <span class="text-xs text-slate-500">Map-based service points around San Pedro, Laguna</span>
+      </div>
+      <div class="grid xl:grid-cols-[2fr_1fr] gap-4">
+        <iframe class="w-full h-80 rounded-xl border border-slate-200" title="San Pedro service map" src="https://www.openstreetmap.org/export/embed.html?bbox=121.03%2C14.30%2C121.08%2C14.37&layer=mapnik"></iframe>
+        <ul class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm space-y-2">
+          <li><strong>City Hall Main</strong><br><span class="text-slate-600">Mon-Fri, 8:00 AM - 5:00 PM</span></li>
+          <li><strong>Pacita Service Satellite</strong><br><span class="text-slate-600">Permit & docs support counter</span></li>
+          <li><strong>Community Helpdesk</strong><br><span class="text-slate-600">Follow-up and incident assistance</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="assistant" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-end justify-between gap-3 mb-3">
+        <h2 class="text-2xl font-bold text-slate-900">AI Citizen Assistant</h2>
+        <span class="text-xs text-slate-500">Ask about appointments, payments, documents, and follow-ups</span>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div id="assistantChat" class="space-y-2 text-sm max-h-56 overflow-y-auto"></div>
+        <div class="mt-3 flex gap-2">
+          <input id="assistantInput" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Type your question..." />
+          <button id="assistantSendBtn" class="rounded-lg bg-brand-green text-white px-4 py-2 font-semibold hover:bg-green-700">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-brand-blue text-white rounded-2xl p-6 md:p-8 shadow-sm">
+      <h3 class="text-xl md:text-2xl font-bold">Citizen-friendly San Pedro Smart Portal</h3>
+      <p class="text-blue-100 mt-2">Easy to use, responsive, and designed for everyday city transactions, updates, feedback, and community suggestions.</p>
+    </section>
+  </main>
+
+  <div id="paymentModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 p-4" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
+    <div class="mx-auto mt-6 max-h-[88vh] overflow-y-auto max-w-2xl rounded-2xl bg-white border border-slate-200 shadow-xl p-6">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h3 id="paymentModalTitle" class="text-xl font-bold text-slate-900">Complete Dummy Payment</h3>
+          <p id="paymentModalRef" class="text-sm text-slate-600 mt-1"></p>
+        </div>
+        <button id="closePaymentModalBtn" class="focus-ring rounded-md bg-slate-100 px-3 py-1.5 text-sm hover:bg-slate-200">Close</button>
+      </div>
+
+      <form id="paymentModalForm" class="mt-4 space-y-4">
+        <div class="grid sm:grid-cols-2 gap-2">
+          <div>
+            <label for="payerName" class="text-sm font-medium text-slate-700">Payer Name</label>
+            <input id="payerName" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Enter payer name" />
+          </div>
+          <div>
+            <label for="paymentRefNo" class="text-sm font-medium text-slate-700">Payment Ref No.</label>
+            <input id="paymentRefNo" required class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2" placeholder="Txn ref / OR no." />
+          </div>
+        </div>
+
+        <div>
+          <p class="text-sm font-medium text-slate-700">Payment Method</p>
+          <div class="mt-2 grid sm:grid-cols-2 gap-2 text-sm">
+            <label class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 flex items-center gap-2">
+              <input type="radio" name="paymentMethod" value="cash" checked /> Cash at City Hall
+            </label>
+            <label class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 flex items-center gap-2">
+              <input type="radio" name="paymentMethod" value="online" /> Online (QRPH / GCash / Maya / Bank)
+            </label>
+          </div>
+        </div>
+
+        <div id="onlineOptions" class="hidden">
+          <label for="onlineProvider" class="text-sm font-medium text-slate-700">Online Provider</label>
+          <select id="onlineProvider" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2">
+            <option>QRPH</option>
+            <option>GCash</option>
+            <option>Maya</option>
+            <option>Bank Transfer</option>
+          </select>
+        </div>
+
+        <p id="paymentInstruction" class="rounded-lg bg-blue-50 border border-blue-200 text-brand-blue text-sm p-3"></p>
+
+        <div class="flex flex-wrap gap-2">
+          <button type="submit" class="rounded-lg bg-brand-green text-white font-semibold px-5 py-2.5 hover:bg-green-700">Confirm Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="bookingsArchiveModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 p-4" role="dialog" aria-modal="true" aria-labelledby="bookingsArchiveTitle">
+    <div class="mx-auto mt-6 max-h-[88vh] overflow-y-auto max-w-4xl rounded-2xl bg-white border border-slate-200 shadow-xl p-6">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <h3 id="bookingsArchiveTitle" class="text-xl font-bold text-slate-900">All Face-to-Face Bookings</h3>
+        <button id="closeBookingsArchiveBtn" class="focus-ring rounded-md bg-slate-100 px-3 py-1.5 text-sm hover:bg-slate-200">Close</button>
+      </div>
+      <div class="mb-3 flex flex-wrap gap-2 text-xs">
+        <button data-booking-filter="all" class="archive-filter active rounded-md border border-slate-300 px-3 py-1">All</button>
+        <button data-booking-filter="active" class="archive-filter rounded-md border border-slate-300 px-3 py-1">Active</button>
+        <button data-booking-filter="completed" class="archive-filter rounded-md border border-slate-300 px-3 py-1">Completed</button>
+        <button data-booking-filter="cancelled" class="archive-filter rounded-md border border-slate-300 px-3 py-1">Cancelled</button>
+        <button data-booking-filter="refunded" class="archive-filter rounded-md border border-slate-300 px-3 py-1">Refunded</button>
+      </div>
+      <div id="bookingsArchiveList" class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 text-sm"></div>
+    </div>
+  </div>
+
+  <div id="docsArchiveModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 p-4" role="dialog" aria-modal="true" aria-labelledby="docsArchiveTitle">
+    <div class="mx-auto mt-6 max-h-[88vh] overflow-y-auto max-w-4xl rounded-2xl bg-white border border-slate-200 shadow-xl p-6">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <h3 id="docsArchiveTitle" class="text-xl font-bold text-slate-900">All Document Requests</h3>
+        <button id="closeDocsArchiveBtn" class="focus-ring rounded-md bg-slate-100 px-3 py-1.5 text-sm hover:bg-slate-200">Close</button>
+      </div>
+      <div class="mb-3 flex flex-wrap gap-2 text-xs">
+        <button data-doc-filter="all" class="archive-doc-filter active rounded-md border border-slate-300 px-3 py-1">All</button>
+        <button data-doc-filter="active" class="archive-doc-filter rounded-md border border-slate-300 px-3 py-1">Active</button>
+        <button data-doc-filter="completed" class="archive-doc-filter rounded-md border border-slate-300 px-3 py-1">Completed</button>
+        <button data-doc-filter="cancelled" class="archive-doc-filter rounded-md border border-slate-300 px-3 py-1">Cancelled</button>
+        <button data-doc-filter="refunded" class="archive-doc-filter rounded-md border border-slate-300 px-3 py-1">Refunded</button>
+      </div>
+      <div id="docsArchiveList" class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 text-sm"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden fixed right-4 top-20 z-50 rounded-lg bg-slate-900 text-white px-4 py-3 text-sm shadow-xl"></div>
+
+  <script>
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const ctaBtn = document.getElementById('ctaBtn');
+    const toast = document.getElementById('toast');
+    const themeBtn = document.getElementById('themeBtn');
+    const sessionBadge = document.getElementById('sessionBadge');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const appointmentForm = document.getElementById('appointmentForm');
+    const appointmentList = document.getElementById('appointmentList');
+    const announcementList = document.getElementById('announcementList');
+    const mayorAnnouncementList = document.getElementById('mayorAnnouncementList');
+    const documentRequestForm = document.getElementById('documentRequestForm');
+    const documentRequestList = document.getElementById('documentRequestList');
+    const followupForm = document.getElementById('followupForm');
+    const followupList = document.getElementById('followupList');
+    const followupSearchInput = document.getElementById('followupSearchInput');
+    const followupSearchBtn = document.getElementById('followupSearchBtn');
+    const followupSearchResult = document.getElementById('followupSearchResult');
+    const queueBody = document.getElementById('queueBody');
+    const permitBody = document.getElementById('permitBody');
+    const permitSearch = document.getElementById('permitSearch');
+    const permitFilter = document.getElementById('permitFilter');
+    const serviceCards = [...document.querySelectorAll('.service-card')];
+    const startLiveChatBtn = document.getElementById('startLiveChatBtn');
+    const customerServiceForm = document.getElementById('customerServiceForm');
+
+    const paymentModal = document.getElementById('paymentModal');
+    const closePaymentModalBtn = document.getElementById('closePaymentModalBtn');
+    const paymentModalForm = document.getElementById('paymentModalForm');
+    const paymentInstruction = document.getElementById('paymentInstruction');
+    const paymentModalRef = document.getElementById('paymentModalRef');
+    const onlineOptions = document.getElementById('onlineOptions');
+    const onlineProvider = document.getElementById('onlineProvider');
+    const payerName = document.getElementById('payerName');
+    const paymentRefNo = document.getElementById('paymentRefNo');
+
+    const viewAllBookingsBtn = document.getElementById('viewAllBookingsBtn');
+    const viewAllDocsBtn = document.getElementById('viewAllDocsBtn');
+    const bookingsArchiveModal = document.getElementById('bookingsArchiveModal');
+    const docsArchiveModal = document.getElementById('docsArchiveModal');
+    const closeBookingsArchiveBtn = document.getElementById('closeBookingsArchiveBtn');
+    const closeDocsArchiveBtn = document.getElementById('closeDocsArchiveBtn');
+    const bookingsArchiveList = document.getElementById('bookingsArchiveList');
+    const docsArchiveList = document.getElementById('docsArchiveList');
+    const bookingFilterButtons = [...document.querySelectorAll('.archive-filter')];
+    const docFilterButtons = [...document.querySelectorAll('.archive-doc-filter')];
+    const notificationList = document.getElementById('notificationList');
+    const markNotificationsReadBtn = document.getElementById('markNotificationsReadBtn');
+    const feedbackForm = document.getElementById('feedbackForm');
+    const feedbackRef = document.getElementById('feedbackRef');
+    const feedbackRating = document.getElementById('feedbackRating');
+    const feedbackComment = document.getElementById('feedbackComment');
+    const feedbackList = document.getElementById('feedbackList');
+    const suggestionForm = document.getElementById('suggestionForm');
+    const suggestionCategory = document.getElementById('suggestionCategory');
+    const suggestionInput = document.getElementById('suggestionInput');
+    const suggestionList = document.getElementById('suggestionList');
+    const refreshCityPulseBtn = document.getElementById('refreshCityPulseBtn');
+    const pulseQueuePeak = document.getElementById('pulseQueuePeak');
+    const pulseDelay = document.getElementById('pulseDelay');
+    const pulseHealth = document.getElementById('pulseHealth');
+    const languageSelect = document.getElementById('languageSelect');
+    const voiceModeBtn = document.getElementById('voiceModeBtn');
+    const smsOptIn = document.getElementById('smsOptIn');
+    const smsLogList = document.getElementById('smsLogList');
+    const profileForm = document.getElementById('profileForm');
+    const profileName = document.getElementById('profileName');
+    const profileEmail = document.getElementById('profileEmail');
+    const profilePhone = document.getElementById('profilePhone');
+    const profileBarangay = document.getElementById('profileBarangay');
+    const barangayFilter = document.getElementById('barangayFilter');
+    const refreshTimelineBtn = document.getElementById('refreshTimelineBtn');
+    const timelineList = document.getElementById('timelineList');
+    const incidentForm = document.getElementById('incidentForm');
+    const incidentCategory = document.getElementById('incidentCategory');
+    const incidentLocation = document.getElementById('incidentLocation');
+    const incidentDetails = document.getElementById('incidentDetails');
+    const incidentList = document.getElementById('incidentList');
+    const assistantChat = document.getElementById('assistantChat');
+    const assistantInput = document.getElementById('assistantInput');
+    const assistantSendBtn = document.getElementById('assistantSendBtn');
+    const emergencyBanner = document.getElementById('emergencyBanner');
+    const emergencyInactive = document.getElementById('emergencyInactive');
+    const emergencyLevelBadge = document.getElementById('emergencyLevelBadge');
+    const emergencyTitle = document.getElementById('emergencyTitle');
+    const emergencyMessage = document.getElementById('emergencyMessage');
+    const emergencyHotline = document.getElementById('emergencyHotline');
+    const emergencyHelpForm = document.getElementById('emergencyHelpForm');
+    const emergencyNeedType = document.getElementById('emergencyNeedType');
+    const emergencyNeedLocation = document.getElementById('emergencyNeedLocation');
+    const emergencyNeedDetails = document.getElementById('emergencyNeedDetails');
+    const emergencyHelpBtn = document.getElementById('emergencyHelpBtn');
+    const emergencyHelpList = document.getElementById('emergencyHelpList');
+    const quickJumpSelect = document.getElementById('quickJumpSelect');
+    const quickJumpBtn = document.getElementById('quickJumpBtn');
+    const quickTopBtn = document.getElementById('quickTopBtn');
+    const apptHour = document.getElementById('apptHour');
+    const apptMinute = document.getElementById('apptMinute');
+    const apptMeridiem = document.getElementById('apptMeridiem');
+    const docHour = document.getElementById('docHour');
+    const docMinute = document.getElementById('docMinute');
+    const docMeridiem = document.getElementById('docMeridiem');
+    const apptCitizenType = document.getElementById('apptCitizenType');
+    const apptUrgentFlag = document.getElementById('apptUrgentFlag');
+    const apptPriorityNote = document.getElementById('apptPriorityNote');
+    const docCitizenType = document.getElementById('docCitizenType');
+    const docUrgentFlag = document.getElementById('docUrgentFlag');
+    const docPriorityNote = document.getElementById('docPriorityNote');
+    const saveApptDraftBtn = document.getElementById('saveApptDraftBtn');
+    const clearApptDraftBtn = document.getElementById('clearApptDraftBtn');
+    const saveDocDraftBtn = document.getElementById('saveDocDraftBtn');
+    const clearDocDraftBtn = document.getElementById('clearDocDraftBtn');
+    const apptDraftStatus = document.getElementById('apptDraftStatus');
+    const docDraftStatus = document.getElementById('docDraftStatus');
+    const apptRebookingSuggestions = document.getElementById('apptRebookingSuggestions');
+    const docRebookingSuggestions = document.getElementById('docRebookingSuggestions');
+    const appointmentsDraftBadge = document.getElementById('appointmentsDraftBadge');
+    const documentsDraftBadge = document.getElementById('documentsDraftBadge');
+
+    const statAppointments = document.getElementById('statAppointments');
+    const statAnnouncements = document.getElementById('statAnnouncements');
+    const statCheckins = document.getElementById('statCheckins');
+    const statPermits = document.getElementById('statPermits');
+
+    const permits = [
+      { id: 'AP-0921', applicant: 'Juan D.', permit: 'Building', submitted: '2026-01-25', status: 'Pending' },
+      { id: 'AP-0922', applicant: 'Maria S.', permit: 'Business', submitted: '2026-01-24', status: 'In Review' },
+      { id: 'AP-0923', applicant: 'Luis P.', permit: 'Temporary', submitted: '2026-01-23', status: 'Approved' },
+      { id: 'AP-0924', applicant: 'Anne T.', permit: 'Business', submitted: '2026-01-23', status: 'Revised' },
+      { id: 'AP-0925', applicant: 'Katrina R.', permit: 'Building', submitted: '2026-01-22', status: 'Denied' }
+    ];
+
+    const queueItems = [
+      { id: '#01', name: 'Juan D.', service: 'Permit Pickup', status: 'Checked-In' },
+      { id: '#02', name: 'Maria S.', service: 'Payment', status: 'Waiting' },
+      { id: '#03', name: 'Luis P.', service: 'Inquiry', status: 'No-Show' },
+      { id: '#04', name: 'Anne T.', service: 'Permit Submission', status: 'Waiting' }
+    ];
+
+    const storage = {
+      bookingsKey: 'smartCityBookings',
+      announcementsKey: 'smartCityAdminAnnouncements',
+      sharedBookingsKey: 'smartCityCitizenBookings',
+      followupsKey: 'smartCityCitizenFollowups',
+      mayorAnnouncementsKey: 'smartCityMayorAnnouncements',
+      notificationsKey: 'smartCityNotifications',
+      feedbackKey: 'smartCityCitizenFeedback',
+      suggestionsKey: 'smartCityCitizenSuggestions',
+      incidentsKey: 'smartCityCitizenIncidents',
+      profileKey: 'smartCityCitizenProfile',
+      smsKey: 'smartCitySmsOutbox',
+      languageKey: 'smartCityLanguage',
+      submitLogKey: 'smartCitySubmitLog',
+      emergencyStateKey: 'smartCityEmergencyState',
+      emergencyHelpKey: 'smartCityEmergencyHelpTickets',
+      appointmentDraftKey: 'smartCityDraftAppointment',
+      documentDraftKey: 'smartCityDraftDocument'
+    };
+
+    let pendingPaymentRequest = null;
+    let bookingsArchiveFilter = 'all';
+    let docsArchiveFilter = 'all';
+    let voiceGuidanceEnabled = false;
+    const LAST_SECTION_KEY = 'smartCityLastSectionCitizen';
+    let lastApptDraftVisible = false;
+    let lastDocDraftVisible = false;
+
+    function generateBookingId(prefix = 'BK') {
+      return `${prefix}-${Date.now().toString().slice(-6)}`;
+    }
+
+    function generateTicketId() {
+      return `TKT-${Date.now().toString().slice(-6)}`;
+    }
+
+    function generateQueueToken() {
+      return `Q-${Math.floor(100 + Math.random() * 900)}`;
+    }
+
+    function composeMeridiemTime(hour, minute, meridiem) {
+      if (!hour || !minute || !meridiem) return '';
+      return `${hour}:${minute} ${String(meridiem).toUpperCase()}`;
+    }
+
+    function buildPriorityMeta(citizenType, urgentFlag, note) {
+      const normalized = citizenType || 'regular';
+      const weights = { regular: 0, solo_parent: 2, senior: 3, pregnant: 3, pwd: 4 };
+      const score = (weights[normalized] || 0) + (urgentFlag ? 4 : 0);
+      const level = score >= 7 ? 'Critical' : score >= 5 ? 'High' : score >= 3 ? 'Medium' : 'Normal';
+      return {
+        citizenType: normalized,
+        urgent: !!urgentFlag,
+        note: (note || '').trim(),
+        score,
+        level,
+        taggedAt: new Date().toISOString()
+      };
+    }
+
+    function estimateEtaMinutes(type = 'default') {
+      const active = loadSharedBookings().filter((item) => !isRequestInactive(item)).length;
+      const base = type === 'document_request' ? 20 : 15;
+      return Math.min(90, base + active * 4);
+    }
+
+    function hasSlotCapacity(date, time, type, maxPerSlot = 3) {
+      const count = loadSharedBookings().filter((item) => item.date === date && item.time === time && item.type === type && !isRequestInactive(item)).length;
+      return count < maxPerSlot;
+    }
+
+    function downloadReceiptById(refId) {
+      const item = loadSharedBookings().find((x) => x.id === refId);
+      if (!item) return;
+      const text = [
+        'San Pedro Smart City Transaction Receipt',
+        `Reference: ${item.id}`,
+        `Ticket ID: ${item.ticketId || 'N/A'}`,
+        `Queue Token: ${item.queueToken || 'N/A'}`,
+        `Citizen: ${item.name || 'N/A'}`,
+        `Service: ${item.service || item.documentType || 'N/A'}`,
+        `Schedule: ${item.date || 'N/A'} ${item.time || ''}`,
+        `Status: ${item.status || 'N/A'}`,
+        `Payment: ${item.paymentStatus || 'N/A'}`,
+        `Generated: ${new Date().toLocaleString()}`
+      ].join('\n');
+
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `${item.id}-receipt.txt`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function applyLanguage() {
+      const lang = getLanguage();
+      document.documentElement.lang = lang === 'fil' ? 'fil' : 'en';
+      const suggestionsHeader = document.querySelector('#suggestions h2');
+      const incidentsHeader = document.querySelector('#incidents h2');
+      const timelineHeader = document.querySelector('#timeline h2');
+      if (lang === 'fil') {
+        if (suggestionsHeader) suggestionsHeader.textContent = 'Kahon ng Mungkahi ng Mamamayan';
+        if (incidentsHeader) incidentsHeader.textContent = 'Pag-uulat ng Insidente';
+        if (timelineHeader) timelineHeader.textContent = 'Pinagsamang Timeline ng Mamamayan';
+      } else {
+        if (suggestionsHeader) suggestionsHeader.textContent = 'Citizen Suggestion Box';
+        if (incidentsHeader) incidentsHeader.textContent = 'Incident Reporting';
+        if (timelineHeader) timelineHeader.textContent = 'Unified Citizen Timeline';
+      }
+    }
+
+    function renderSession() {
+      const sessionRaw = localStorage.getItem('smartCitySession');
+      if (!sessionRaw) return;
+      try {
+        const session = JSON.parse(sessionRaw);
+        if (!session?.role || !session?.email) return;
+        if (session.role === 'admin') {
+          window.location.href = 'admin.html';
+          return;
+        }
+        sessionBadge.textContent = `${session.role.toUpperCase()} · ${session.email}`;
+        sessionBadge.classList.remove('hidden');
+        logoutBtn.classList.remove('hidden');
+      } catch {
+        // ignore invalid session payload
+      }
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2200);
+    }
+
+    function loadBookings() {
+      return JSON.parse(localStorage.getItem(storage.bookingsKey) || '[]');
+    }
+
+    function loadSharedBookings() {
+      return JSON.parse(localStorage.getItem(storage.sharedBookingsKey) || '[]');
+    }
+
+    function saveSharedBookings(items) {
+      localStorage.setItem(storage.sharedBookingsKey, JSON.stringify(items));
+    }
+
+    function loadFollowups() {
+      return JSON.parse(localStorage.getItem(storage.followupsKey) || '[]');
+    }
+
+    function saveFollowups(items) {
+      localStorage.setItem(storage.followupsKey, JSON.stringify(items));
+    }
+
+    function loadNotifications() {
+      return JSON.parse(localStorage.getItem(storage.notificationsKey) || '[]');
+    }
+
+    function saveNotifications(items) {
+      localStorage.setItem(storage.notificationsKey, JSON.stringify(items));
+    }
+
+    function pushNotification(target, title, message, refId = '') {
+      const items = loadNotifications();
+      items.push({ id: `NTF-${Date.now().toString().slice(-7)}`, target, title, message, refId, read: false, createdAt: new Date().toISOString() });
+      saveNotifications(items);
+
+      if (smsOptIn?.checked && (target === 'citizen' || target === 'all')) {
+        const sms = loadSmsLogs();
+        sms.push({ id: `SMS-${Date.now().toString().slice(-7)}`, title, message, createdAt: new Date().toISOString() });
+        saveSmsLogs(sms);
+        renderSmsLogs();
+      }
+
+      if (voiceGuidanceEnabled && target === 'citizen' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${title}. ${message}`));
+      }
+    }
+
+    function loadFeedbacks() {
+      return JSON.parse(localStorage.getItem(storage.feedbackKey) || '[]');
+    }
+
+    function saveFeedbacks(items) {
+      localStorage.setItem(storage.feedbackKey, JSON.stringify(items));
+    }
+
+    function loadSuggestions() {
+      return JSON.parse(localStorage.getItem(storage.suggestionsKey) || '[]');
+    }
+
+    function saveSuggestions(items) {
+      localStorage.setItem(storage.suggestionsKey, JSON.stringify(items));
+    }
+
+    function loadIncidents() {
+      return JSON.parse(localStorage.getItem(storage.incidentsKey) || '[]');
+    }
+
+    function saveIncidents(items) {
+      localStorage.setItem(storage.incidentsKey, JSON.stringify(items));
+    }
+
+    function loadProfile() {
+      return JSON.parse(localStorage.getItem(storage.profileKey) || '{}');
+    }
+
+    function saveProfile(data) {
+      localStorage.setItem(storage.profileKey, JSON.stringify(data));
+    }
+
+    function loadSmsLogs() {
+      return JSON.parse(localStorage.getItem(storage.smsKey) || '[]');
+    }
+
+    function saveSmsLogs(items) {
+      localStorage.setItem(storage.smsKey, JSON.stringify(items));
+    }
+
+    function loadSubmitLog() {
+      return JSON.parse(localStorage.getItem(storage.submitLogKey) || '{}');
+    }
+
+    function saveSubmitLog(log) {
+      localStorage.setItem(storage.submitLogKey, JSON.stringify(log));
+    }
+
+    function parseMeridiemTime(raw) {
+      const m = String(raw || '').trim().match(/^(\d{2}):(\d{2})\s(AM|PM)$/i);
+      if (!m) return null;
+      return { hour: m[1], minute: m[2], meridiem: m[3].toUpperCase() };
+    }
+
+    function toMeridiemTime(totalMinutes) {
+      const normalized = ((Number(totalMinutes) || 0) + 1440) % 1440;
+      const hour24 = Math.floor(normalized / 60);
+      const minute = normalized % 60;
+      const meridiem = hour24 >= 12 ? 'PM' : 'AM';
+      const hour12 = ((hour24 + 11) % 12) + 1;
+      return `${String(hour12).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${meridiem}`;
+    }
+
+    function suggestAlternativeSlots(date, time, type, limit = 4) {
+      const out = [];
+      const startBase = new Date(`${date}T00:00:00`);
+      if (Number.isNaN(startBase.getTime())) return out;
+      const ranges = [];
+      for (let d = 0; d < 5; d += 1) {
+        const candidate = new Date(startBase);
+        candidate.setDate(startBase.getDate() + d);
+        const y = candidate.getFullYear();
+        const m = String(candidate.getMonth() + 1).padStart(2, '0');
+        const day = String(candidate.getDate()).padStart(2, '0');
+        const dateIso = `${y}-${m}-${day}`;
+        for (let mins = 8 * 60; mins <= 17 * 60 + 30; mins += 30) {
+          ranges.push({ date: dateIso, time: toMeridiemTime(mins) });
+        }
+      }
+
+      for (const slot of ranges) {
+        if (slot.date === date && slot.time === time) continue;
+        if (hasSlotCapacity(slot.date, slot.time, type)) {
+          out.push(slot);
+          if (out.length >= limit) break;
+        }
+      }
+      return out;
+    }
+
+    function renderRebookingSuggestions(mode, originalDate, originalTime, type) {
+      const holder = mode === 'appt' ? apptRebookingSuggestions : docRebookingSuggestions;
+      if (!holder) return;
+      const suggestions = suggestAlternativeSlots(originalDate, originalTime, type);
+      if (!suggestions.length) {
+        holder.classList.remove('hidden');
+        holder.innerHTML = '<p class="text-amber-800 font-semibold">No nearby slots available right now. Please try a different date.</p>';
+        return;
+      }
+      holder.classList.remove('hidden');
+      holder.innerHTML = `<p class="text-amber-800 font-semibold mb-2">Selected slot is full. Try one of these:</p>
+        <div class="flex flex-wrap gap-2">${suggestions.map((slot) => `<button type="button" data-rebook-mode="${mode}" data-rebook-date="${slot.date}" data-rebook-time="${slot.time}" class="apply-rebook rounded-md bg-white border border-amber-300 text-amber-800 px-2.5 py-1.5 text-xs hover:bg-amber-100">${slot.date} • ${slot.time}</button>`).join('')}</div>`;
+    }
+
+    function clearRebookingSuggestions(mode) {
+      const holder = mode === 'appt' ? apptRebookingSuggestions : docRebookingSuggestions;
+      if (!holder) return;
+      holder.classList.add('hidden');
+      holder.innerHTML = '';
+    }
+
+    function saveDraft(key, value, statusEl) {
+      localStorage.setItem(key, JSON.stringify({ ...value, savedAt: new Date().toISOString() }));
+      if (statusEl) statusEl.textContent = `Draft saved ${new Date().toLocaleTimeString()}.`;
+      updateServiceDraftBadges();
+    }
+
+    function loadDraft(key) {
+      return JSON.parse(localStorage.getItem(key) || 'null');
+    }
+
+    function clearDraft(key, statusEl) {
+      localStorage.removeItem(key);
+      if (statusEl) statusEl.textContent = 'Draft cleared.';
+      updateServiceDraftBadges();
+    }
+
+    function hasDraftContent(draft) {
+      if (!draft || typeof draft !== 'object') return false;
+      return Object.entries(draft).some(([field, value]) => {
+        if (field === 'savedAt') return false;
+        if (typeof value === 'string') return value.trim().length > 0;
+        if (typeof value === 'boolean') return value === true;
+        return value !== null && value !== undefined && String(value).trim() !== '';
+      });
+    }
+
+    function pulseDraftBadgeOnce(kind, badgeEl) {
+      if (!badgeEl) return;
+      const key = `smartCityDraftBadgePulseSeen:${kind}`;
+      if (sessionStorage.getItem(key) === '1') return;
+      sessionStorage.setItem(key, '1');
+
+      badgeEl.classList.add('animate-pulse', 'ring-2', 'ring-amber-200');
+      setTimeout(() => {
+        badgeEl.classList.remove('animate-pulse', 'ring-2', 'ring-amber-200');
+      }, 1400);
+    }
+
+    function updateServiceDraftBadges() {
+      const hasApptDraft = hasDraftContent(loadDraft(storage.appointmentDraftKey));
+      const hasDocDraft = hasDraftContent(loadDraft(storage.documentDraftKey));
+      const apptPulseKey = 'smartCityDraftBadgePulseSeen:appointments';
+      const docPulseKey = 'smartCityDraftBadgePulseSeen:documents';
+      if (appointmentsDraftBadge) appointmentsDraftBadge.classList.toggle('hidden', !hasApptDraft);
+      if (documentsDraftBadge) documentsDraftBadge.classList.toggle('hidden', !hasDocDraft);
+
+      if (!hasApptDraft) sessionStorage.removeItem(apptPulseKey);
+      if (!hasDocDraft) sessionStorage.removeItem(docPulseKey);
+
+      if (hasApptDraft && !lastApptDraftVisible) pulseDraftBadgeOnce('appointments', appointmentsDraftBadge);
+      if (hasDocDraft && !lastDocDraftVisible) pulseDraftBadgeOnce('documents', documentsDraftBadge);
+
+      lastApptDraftVisible = hasApptDraft;
+      lastDocDraftVisible = hasDocDraft;
+    }
+
+    function updateDraftStatusByConnectivity() {
+      const base = navigator.onLine ? 'Online mode' : 'Offline mode';
+      if (apptDraftStatus) apptDraftStatus.textContent = `${base}: drafts auto-save on form changes.`;
+      if (docDraftStatus) docDraftStatus.textContent = `${base}: drafts auto-save on form changes.`;
+    }
+
+    function readAppointmentDraftPayload() {
+      return {
+        name: document.getElementById('apptName').value,
+        date: document.getElementById('apptDate').value,
+        hour: apptHour.value,
+        minute: apptMinute.value,
+        meridiem: apptMeridiem.value,
+        service: document.getElementById('apptService').value,
+        citizenType: apptCitizenType.value,
+        urgent: apptUrgentFlag.checked,
+        note: apptPriorityNote.value
+      };
+    }
+
+    function applyAppointmentDraftPayload(data) {
+      if (!data) return;
+      document.getElementById('apptName').value = data.name || '';
+      document.getElementById('apptDate').value = data.date || '';
+      apptHour.value = data.hour || '';
+      apptMinute.value = data.minute || '';
+      apptMeridiem.value = data.meridiem || '';
+      document.getElementById('apptService').value = data.service || '';
+      apptCitizenType.value = data.citizenType || 'regular';
+      apptUrgentFlag.checked = !!data.urgent;
+      apptPriorityNote.value = data.note || '';
+    }
+
+    function readDocumentDraftPayload() {
+      return {
+        name: document.getElementById('docName').value,
+        type: document.getElementById('docType').value,
+        purpose: document.getElementById('docPurpose').value,
+        email: document.getElementById('docEmail').value,
+        date: document.getElementById('docDate').value,
+        hour: docHour.value,
+        minute: docMinute.value,
+        meridiem: docMeridiem.value,
+        citizenType: docCitizenType.value,
+        urgent: docUrgentFlag.checked,
+        note: docPriorityNote.value
+      };
+    }
+
+    function applyDocumentDraftPayload(data) {
+      if (!data) return;
+      document.getElementById('docName').value = data.name || '';
+      document.getElementById('docType').value = data.type || '';
+      document.getElementById('docPurpose').value = data.purpose || '';
+      document.getElementById('docEmail').value = data.email || '';
+      document.getElementById('docDate').value = data.date || '';
+      docHour.value = data.hour || '';
+      docMinute.value = data.minute || '';
+      docMeridiem.value = data.meridiem || '';
+      docCitizenType.value = data.citizenType || 'regular';
+      docUrgentFlag.checked = !!data.urgent;
+      docPriorityNote.value = data.note || '';
+    }
+
+    function restoreDrafts() {
+      const apptDraft = loadDraft(storage.appointmentDraftKey);
+      const docDraft = loadDraft(storage.documentDraftKey);
+      if (apptDraft) {
+        applyAppointmentDraftPayload(apptDraft);
+        if (apptDraftStatus) apptDraftStatus.textContent = `Appointment draft restored (${new Date(apptDraft.savedAt || Date.now()).toLocaleString()}).`;
+      }
+      if (docDraft) {
+        applyDocumentDraftPayload(docDraft);
+        if (docDraftStatus) docDraftStatus.textContent = `Document draft restored (${new Date(docDraft.savedAt || Date.now()).toLocaleString()}).`;
+      }
+      updateServiceDraftBadges();
+    }
+
+    function saveLastSection(id) {
+      if (!id) return;
+      localStorage.setItem(LAST_SECTION_KEY, id);
+    }
+
+    function restoreLastSection() {
+      if (window.location.hash) return;
+      const last = localStorage.getItem(LAST_SECTION_KEY);
+      if (!last) return;
+      const target = document.getElementById(last);
+      if (!target) return;
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 180);
+    }
+
+    function wireSectionTracking() {
+      document.querySelectorAll('a[href^="#"]').forEach((link) => {
+        link.addEventListener('click', () => {
+          const href = link.getAttribute('href') || '';
+          const id = href.slice(1);
+          if (id) saveLastSection(id);
+        });
+      });
+
+      window.addEventListener('hashchange', () => {
+        const id = (window.location.hash || '').replace('#', '');
+        if (id) saveLastSection(id);
+      });
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible?.target?.id) saveLastSection(visible.target.id);
+      }, { rootMargin: '-30% 0px -50% 0px', threshold: [0.25, 0.5] });
+
+      document.querySelectorAll('main section[id]').forEach((section) => observer.observe(section));
+    }
+
+    function loadEmergencyState() {
+      return JSON.parse(localStorage.getItem(storage.emergencyStateKey) || '{"active":false,"level":"Advisory","title":"Emergency Operations Mode Active","message":"City emergency protocol is active. Use the quick help form below for urgent assistance.","hotline":"911"}');
+    }
+
+    function saveEmergencyState(state) {
+      localStorage.setItem(storage.emergencyStateKey, JSON.stringify(state));
+    }
+
+    function loadEmergencyHelpTickets() {
+      return JSON.parse(localStorage.getItem(storage.emergencyHelpKey) || '[]');
+    }
+
+    function saveEmergencyHelpTickets(items) {
+      localStorage.setItem(storage.emergencyHelpKey, JSON.stringify(items));
+    }
+
+    function canSubmit(actionKey, cooldownMs = 45000) {
+      const log = loadSubmitLog();
+      const now = Date.now();
+      const last = log[actionKey] || 0;
+      if (now - last < cooldownMs) return false;
+      log[actionKey] = now;
+      saveSubmitLog(log);
+      return true;
+    }
+
+    function isDuplicateByText(items, extractor, text, thresholdMs = 1000 * 60 * 60 * 24) {
+      const value = (text || '').trim().toLowerCase();
+      const now = Date.now();
+      return items.some((item) => {
+        const createdAt = new Date(item.createdAt || 0).getTime();
+        return extractor(item).trim().toLowerCase() === value && now - createdAt < thresholdMs;
+      });
+    }
+
+    function getLanguage() {
+      return localStorage.getItem(storage.languageKey) || 'en';
+    }
+
+    function setLanguage(lang) {
+      localStorage.setItem(storage.languageKey, lang);
+    }
+
+    function generateClaimCode() {
+      return `CLM-${Date.now().toString().slice(-6)}`;
+    }
+
+    function ensureTicketIds() {
+      const items = loadSharedBookings();
+      let updated = false;
+      items.forEach((item) => {
+        if (!item.ticketId) {
+          item.ticketId = generateTicketId();
+          updated = true;
+        }
+        if (!item.claimCode) {
+          item.claimCode = generateClaimCode();
+          updated = true;
+        }
+      });
+      if (updated) saveSharedBookings(items);
+    }
+
+    function isPaymentSettled(item) {
+      const status = (item.paymentStatus || '').toLowerCase();
+      return status.includes('paid') || status.includes('cash');
+    }
+
+    function getTimelineStage(item) {
+      if (item.status === 'Completed') return 3;
+      if (isPaymentSettled(item)) return 2;
+      if ((item.status || '').toLowerCase().includes('confirm')) return 1;
+      return 0;
+    }
+
+    function timelineMarkup(item) {
+      const stages = ['Requested', 'Confirmed', 'Paid', 'Completed'];
+      const stage = getTimelineStage(item);
+      return `<div class="mt-2 flex flex-wrap gap-1">${stages
+        .map((label, index) => `<span class="px-2 py-0.5 rounded text-[10px] font-semibold ${index <= stage ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}">${label}</span>`)
+        .join('')}</div>`;
+    }
+
+    function bookingMatchesFilter(item, filter) {
+      const status = (item.status || '').toLowerCase();
+      const payment = (item.paymentStatus || '').toLowerCase();
+      if (filter === 'completed') return status.includes('completed');
+      if (filter === 'cancelled') return status.includes('cancel') || status.includes('declined');
+      if (filter === 'refunded') return payment.includes('refund');
+      if (filter === 'active') return !status.includes('completed') && !status.includes('cancel') && !status.includes('declined') && !payment.includes('refund');
+      return true;
+    }
+
+    function reasonMarkup(item) {
+      const lines = [];
+      if (item.refundReason) lines.push(`<p class="text-[11px] text-slate-600 mt-1"><strong>Refund reason:</strong> ${item.refundReason}</p>`);
+      if (item.declineReason) lines.push(`<p class="text-[11px] text-slate-600 mt-1"><strong>Decline reason:</strong> ${item.declineReason}</p>`);
+      return lines.join('');
+    }
+
+    function statusChip(item) {
+      const status = (item.status || '').toLowerCase();
+      const payment = (item.paymentStatus || '').toLowerCase();
+      if (payment.includes('refund')) return '<span class="status-chip status-refunded">Refunded</span>';
+      if (status.includes('declined')) return '<span class="status-chip status-declined">Declined</span>';
+      if (status.includes('cancel')) return '<span class="status-chip status-cancelled">Cancelled</span>';
+      return '<span class="status-chip status-active">Active</span>';
+    }
+
+    function isRequestInactive(item) {
+      const status = (item.status || '').toLowerCase();
+      const payment = (item.paymentStatus || '').toLowerCase();
+      return status.includes('cancel') || status.includes('declined') || payment.includes('refund');
+    }
+
+    function saveBookings(bookings) {
+      localStorage.setItem(storage.bookingsKey, JSON.stringify(bookings));
+      statAppointments.textContent = String(bookings.length);
+    }
+
+    function renderBookings() {
+      const bookings = loadSharedBookings().filter((b) => b.type === 'f2f_payment').slice().reverse();
+      const preview = bookings.slice(0, 3);
+
+      function compactBookingCard(b) {
+        return `<li class="compact-request-card p-3 rounded-lg border border-slate-200 bg-slate-50 ${isRequestInactive(b) ? 'request-inactive' : ''}">
+          <div class="flex items-start justify-between gap-2">${statusChip(b)}<span class="text-[11px] rounded-full bg-slate-100 text-slate-600 px-2 py-0.5">${b.queueToken || 'Auto'}</span></div>
+          <p class="mt-1 text-slate-800 font-semibold leading-snug">${b.service || 'Service'} • ${b.name || 'Citizen'}</p>
+          <p class="text-sm text-slate-600">${b.date || 'N/A'} at ${b.time || 'N/A'}</p>
+          <details class="mt-2 rounded-md border border-slate-200 bg-white px-2 py-1.5">
+            <summary class="text-xs font-semibold text-brand-blue">View full details</summary>
+            <div class="mt-2 text-xs text-brand-blue">Ref: ${b.id} • Ticket: ${b.ticketId || 'N/A'} • Queue: ${b.queueToken || 'Auto'} • ETA: ${b.etaMinutes || '15'} mins • Claim: ${b.claimCode || 'N/A'} • ${b.status} • ${b.paymentStatus}</div>
+            ${timelineMarkup(b)}
+            ${reasonMarkup(b)}
+          </details>
+          <div class="mt-2 flex gap-1"><button data-cancel-id="${b.id}" class="cancel-request rounded-md bg-red-100 text-red-700 px-2 py-1 text-xs ${isRequestInactive(b) ? 'opacity-60 cursor-not-allowed' : ''}" ${isRequestInactive(b) ? 'disabled' : ''}>Cancel / Refund</button><button data-receipt-id="${b.id}" class="download-receipt rounded-md bg-blue-100 text-brand-blue px-2 py-1 text-xs">Receipt</button></div>
+        </li>`;
+      }
+
+      appointmentList.innerHTML = preview.length
+        ? preview.map((b) => compactBookingCard(b)).join('')
+        : '<li class="text-slate-500">No bookings yet.</li>';
+
+      const filteredArchive = bookings.filter((b) => bookingMatchesFilter(b, bookingsArchiveFilter));
+      bookingsArchiveList.innerHTML = filteredArchive.length
+        ? filteredArchive.map((b) => `<article class="p-3 rounded-lg border border-slate-200 bg-slate-50 ${isRequestInactive(b) ? 'request-inactive' : ''}">${statusChip(b)} <strong>${b.name}</strong> • ${b.service}<br><span class="text-slate-500">${b.date} at ${b.time}</span><br><span class="text-xs text-brand-blue">Ref: ${b.id} • Ticket: ${b.ticketId || 'N/A'} • Claim: ${b.claimCode || 'N/A'} • ${b.status} • ${b.paymentStatus}</span>${timelineMarkup(b)}${reasonMarkup(b)}</article>`).join('')
+        : '<p class="text-slate-500">No bookings yet.</p>';
+
+      statAppointments.textContent = String(bookings.length);
+    }
+
+    function renderDocumentRequests() {
+      const requests = loadSharedBookings().filter((b) => b.type === 'document_request').slice().reverse();
+      const preview = requests.slice(0, 3);
+
+      function compactDocumentCard(r) {
+        return `<li class="compact-request-card p-3 rounded-lg border border-slate-200 bg-slate-50 ${isRequestInactive(r) ? 'request-inactive' : ''}">
+          <div class="flex items-start justify-between gap-2">${statusChip(r)}<span class="text-[11px] rounded-full bg-slate-100 text-slate-600 px-2 py-0.5">${r.queueToken || 'Auto'}</span></div>
+          <p class="mt-1 text-slate-800 font-semibold leading-snug">${r.documentType || 'Document'} • ${r.purpose || 'N/A'}</p>
+          <p class="text-sm text-slate-600">Pickup: ${r.date || 'N/A'} at ${r.time || 'N/A'}</p>
+          <details class="mt-2 rounded-md border border-slate-200 bg-white px-2 py-1.5">
+            <summary class="text-xs font-semibold text-brand-blue">View full details</summary>
+            <div class="mt-2 text-xs text-brand-blue">Ref: ${r.id} • Ticket: ${r.ticketId || 'N/A'} • Queue: ${r.queueToken || 'Auto'} • ETA: ${r.etaMinutes || '20'} mins • Claim: ${r.claimCode || 'N/A'} • ${r.status} • ${r.paymentStatus}</div>
+            ${timelineMarkup(r)}
+            ${reasonMarkup(r)}
+          </details>
+          <div class="mt-2 flex gap-1"><button data-cancel-id="${r.id}" class="cancel-request rounded-md bg-red-100 text-red-700 px-2 py-1 text-xs ${isRequestInactive(r) ? 'opacity-60 cursor-not-allowed' : ''}" ${isRequestInactive(r) ? 'disabled' : ''}>Cancel / Refund</button><button data-receipt-id="${r.id}" class="download-receipt rounded-md bg-blue-100 text-brand-blue px-2 py-1 text-xs">Receipt</button></div>
+        </li>`;
+      }
+
+      documentRequestList.innerHTML = preview.length
+        ? preview.map((r) => compactDocumentCard(r)).join('')
+        : '<li class="text-slate-500">No document requests yet.</li>';
+
+      const filteredDocArchive = requests.filter((r) => bookingMatchesFilter(r, docsArchiveFilter));
+      docsArchiveList.innerHTML = filteredDocArchive.length
+        ? filteredDocArchive.map((r) => `<article class="p-3 rounded-lg border border-slate-200 bg-slate-50 ${isRequestInactive(r) ? 'request-inactive' : ''}">${statusChip(r)} <strong>${r.documentType}</strong> • ${r.purpose}<br><span class="text-slate-500">Pickup: ${r.date} at ${r.time}</span><br><span class="text-xs text-brand-blue">Ref: ${r.id} • Ticket: ${r.ticketId || 'N/A'} • Claim: ${r.claimCode || 'N/A'} • ${r.status} • ${r.paymentStatus}</span>${timelineMarkup(r)}${reasonMarkup(r)}</article>`).join('')
+        : '<p class="text-slate-500">No document requests yet.</p>';
+
+      populateFeedbackReferenceOptions();
+    }
+
+    function renderNotifications() {
+      const items = loadNotifications()
+        .filter((x) => x.target === 'citizen' || x.target === 'all')
+        .slice()
+        .reverse()
+        .slice(0, 8);
+
+      notificationList.innerHTML = items.length
+        ? items.map((item) => `<li class="rounded-lg border ${item.read ? 'border-slate-200 bg-slate-50' : 'border-blue-200 bg-blue-50'} p-3">
+            <p class="font-semibold">${item.title}</p>
+            <p class="text-slate-600">${item.message}</p>
+            <p class="text-[11px] text-slate-500 mt-1">${item.refId ? `Ref: ${item.refId} • ` : ''}${new Date(item.createdAt).toLocaleString()}</p>
+          </li>`).join('')
+        : '<li class="text-slate-500">No notifications yet.</li>';
+    }
+
+    function populateFeedbackReferenceOptions() {
+      const completed = loadSharedBookings().filter((item) => (item.status || '').toLowerCase().includes('completed'));
+      feedbackRef.innerHTML = completed.length
+        ? `<option value="">Select completed request</option>${completed.map((item) => `<option value="${item.id}">${item.id} • ${item.ticketId || 'N/A'} • ${item.service || item.documentType}</option>`).join('')}`
+        : '<option value="">No completed requests available</option>';
+    }
+
+    function renderFeedbacks() {
+      const items = loadFeedbacks().slice().reverse();
+      feedbackList.innerHTML = items.length
+        ? items.map((item) => `<li class="rounded-lg border border-slate-200 bg-white p-3"><strong>${item.reference}</strong> • ${'⭐'.repeat(Number(item.rating))}<br><span class="text-slate-600">${item.comment}</span></li>`).join('')
+        : '<li class="text-slate-500">No feedback submitted yet.</li>';
+    }
+
+    function renderSuggestions() {
+      const items = loadSuggestions().slice().reverse();
+      suggestionList.innerHTML = items.length
+        ? items.slice(0, 8).map((item) => `<li class="rounded-lg border border-slate-200 bg-white p-3">
+            <div class="flex items-center justify-between gap-2">
+              <strong>${item.category}</strong>
+              <span class="text-[11px] rounded-full px-2 py-0.5 ${item.status === 'Implemented' ? 'bg-green-100 text-green-700' : item.status === 'Planned' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">${item.status || 'Under Review'}</span>
+            </div>
+            <p class="text-slate-600 mt-1">${item.message}</p>
+            <p class="text-[11px] text-slate-500 mt-1">${new Date(item.createdAt).toLocaleString()}</p>
+            ${item.adminResponse ? `<p class="text-[11px] text-brand-blue mt-1"><strong>Admin:</strong> ${item.adminResponse}</p>` : ''}
+            <div class="mt-2 flex items-center gap-2">
+              <button data-vote-id="${item.id}" data-vote="up" class="suggestion-vote rounded-md bg-green-100 text-green-700 px-2 py-1 text-xs">▲ ${item.upvotes || 0}</button>
+              <button data-vote-id="${item.id}" data-vote="down" class="suggestion-vote rounded-md bg-rose-100 text-rose-700 px-2 py-1 text-xs">▼ ${item.downvotes || 0}</button>
+            </div>
+          </li>`).join('')
+        : '<li class="text-slate-500">No suggestions yet. Be the first to share an idea!</li>';
+    }
+
+    function renderSmsLogs() {
+      const logs = loadSmsLogs().slice().reverse();
+      smsLogList.innerHTML = logs.length
+        ? logs.slice(0, 6).map((log) => `<li class="rounded-lg border border-slate-200 bg-white p-3"><strong>${log.title}</strong><br><span class="text-slate-600">${log.message}</span><br><span class="text-[11px] text-slate-500">${new Date(log.createdAt).toLocaleString()}</span></li>`).join('')
+        : '<li class="text-slate-500">No SMS-ready alerts yet.</li>';
+    }
+
+    function renderProfile() {
+      const profile = loadProfile();
+      profileName.value = profile.name || '';
+      profileEmail.value = profile.email || '';
+      profilePhone.value = profile.phone || '';
+      profileBarangay.value = profile.barangay || '';
+      if (profile.barangay) barangayFilter.value = profile.barangay;
+
+      if (profile.name) {
+        document.getElementById('apptName').value = document.getElementById('apptName').value || profile.name;
+        document.getElementById('docName').value = document.getElementById('docName').value || profile.name;
+        document.getElementById('csName').value = document.getElementById('csName').value || profile.name;
+      }
+      if (profile.email) {
+        document.getElementById('docEmail').value = document.getElementById('docEmail').value || profile.email;
+      }
+      if (profile.phone) {
+        document.getElementById('csContact').value = document.getElementById('csContact').value || profile.phone;
+      }
+    }
+
+    function renderIncidents() {
+      const items = loadIncidents().slice().reverse();
+      incidentList.innerHTML = items.length
+        ? items.slice(0, 8).map((item) => `<li class="rounded-lg border border-slate-200 bg-white p-3"><strong>${item.ticketId}</strong> • ${item.category}<br><span class="text-slate-600">${item.location} — ${item.details}</span><br><span class="text-[11px] text-brand-blue">${item.status || 'Submitted'}</span></li>`).join('')
+        : '<li class="text-slate-500">No incident tickets yet.</li>';
+    }
+
+    function renderEmergencyPanel() {
+      const state = loadEmergencyState();
+      const active = !!state.active;
+
+      emergencyBanner.classList.toggle('hidden', !active);
+      emergencyInactive.classList.toggle('hidden', active);
+      emergencyHelpBtn.disabled = !active;
+      emergencyHelpBtn.classList.toggle('opacity-60', !active);
+      emergencyHelpBtn.classList.toggle('cursor-not-allowed', !active);
+      emergencyHelpBtn.textContent = active ? 'Submit Priority Help Ticket' : 'Emergency Mode Inactive';
+
+      emergencyLevelBadge.textContent = state.level || 'Emergency';
+      emergencyTitle.textContent = state.title || 'Emergency Operations Mode Active';
+      emergencyMessage.textContent = state.message || 'City emergency protocol is active. Use the quick help form below for urgent assistance.';
+      emergencyHotline.textContent = state.hotline || '911';
+    }
+
+    function renderEmergencyHelpList() {
+      const items = loadEmergencyHelpTickets().slice().reverse();
+      emergencyHelpList.innerHTML = items.length
+        ? items.slice(0, 8).map((item) => `<li class="rounded-lg border border-slate-200 bg-white p-3"><strong>${item.id}</strong> • ${item.type}<br><span class="text-slate-600">${item.location}</span><br><span class="text-xs text-slate-500">${item.details}</span><br><span class="text-[11px] text-brand-blue">Status: ${item.status || 'Submitted'} • ${new Date(item.createdAt).toLocaleString()}</span></li>`).join('')
+        : '<li class="text-slate-500">No emergency help tickets yet.</li>';
+    }
+
+    function renderUnifiedTimeline() {
+      const bookings = loadSharedBookings().map((x) => ({ when: x.createdAt, title: `Request ${x.id}`, detail: `${x.status} • ${x.paymentStatus}` }));
+      const followups = loadFollowups().map((x) => ({ when: x.createdAt, title: `Follow-up ${x.ticketId}`, detail: `${x.category} • ${x.status}` }));
+      const suggestions = loadSuggestions().map((x) => ({ when: x.createdAt, title: `Suggestion ${x.id}`, detail: `${x.category} • ${x.status || 'Under Review'}` }));
+      const incidents = loadIncidents().map((x) => ({ when: x.createdAt, title: `Incident ${x.ticketId}`, detail: `${x.category} • ${x.status || 'Submitted'}` }));
+      const emergency = loadEmergencyHelpTickets().map((x) => ({ when: x.createdAt, title: `Emergency ${x.id}`, detail: `${x.type} • ${x.status || 'Submitted'}` }));
+      const merged = [...bookings, ...followups, ...suggestions, ...incidents, ...emergency]
+        .filter((x) => x.when)
+        .sort((a, b) => new Date(b.when) - new Date(a.when))
+        .slice(0, 20);
+
+      timelineList.innerHTML = merged.length
+        ? merged.map((entry) => `<li class="rounded-lg border border-slate-200 bg-slate-50 p-3"><strong>${entry.title}</strong><br><span class="text-slate-600">${entry.detail}</span><br><span class="text-[11px] text-slate-500">${new Date(entry.when).toLocaleString()}</span></li>`).join('')
+        : '<li class="text-slate-500">No timeline events yet.</li>';
+    }
+
+    function sendAssistantMessage() {
+      const query = assistantInput.value.trim();
+      if (!query) return;
+      const normalized = query.toLowerCase();
+      let reply = 'I can help with appointments, payments, documents, follow-up, incidents, and suggestions.';
+
+      if (normalized.includes('appointment') || normalized.includes('book')) reply = 'To book: go to Face-to-Face Payment, choose date/time, then complete payment in the modal.';
+      else if (normalized.includes('document')) reply = 'Use the Document Request section, select document type, set pickup schedule, then submit payment.';
+      else if (normalized.includes('follow')) reply = 'Use Track by Ticket ID in Follow-up Center to monitor your request progress.';
+      else if (normalized.includes('incident')) reply = 'Open Incident Reporting, choose category and location, then submit to create a ticket.';
+      else if (normalized.includes('payment')) reply = 'Payment must be completed before admin confirmation. Use cash or online in the payment modal.';
+
+      assistantChat.innerHTML += `<div class="rounded-lg bg-white border border-slate-200 p-2"><strong>You:</strong> ${query}</div>`;
+      assistantChat.innerHTML += `<div class="rounded-lg bg-blue-50 border border-blue-200 p-2"><strong>Assistant:</strong> ${reply}</div>`;
+      assistantChat.scrollTop = assistantChat.scrollHeight;
+      assistantInput.value = '';
+
+      if (voiceGuidanceEnabled && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(reply));
+      }
+    }
+
+    function decorateCitizenSectionTitles() {
+      const iconBySection = {
+        dashboard: '📊',
+        cityPulse: '⚡',
+        smartInbox: '🔔',
+        citizenControls: '⚙️',
+        profile: '👤',
+        services: '🧩',
+        appointments: '📅',
+        announcements: '📣',
+        documents: '📄',
+        customerService: '🛎️',
+        followup: '🔎',
+        timeline: '🕒',
+        feedback: '⭐',
+        suggestions: '💡',
+        incidents: '🚨',
+        mayor: '🏛️',
+        queue: '🧾',
+        permits: '✅',
+        gallery: '🖼️',
+        locator: '📍',
+        assistant: '🤖',
+        emergency: '🆘'
+      };
+
+      document.querySelectorAll('.citizen-shell section').forEach((section) => {
+        const h2 = section.querySelector('h2');
+        if (!h2 || h2.dataset.polished === 'true') return;
+        const icon = iconBySection[section.id] || '•';
+        h2.innerHTML = `<span class="section-title-polish"><span class="section-icon-dot" aria-hidden="true">${icon}</span><span>${h2.textContent}</span></span>`;
+        h2.dataset.polished = 'true';
+      });
+    }
+
+    function renderCityPulse() {
+      const shared = loadSharedBookings();
+      const active = shared.filter((item) => !isRequestInactive(item));
+      const waitingLoad = Math.max(3, active.length * 2 + queueItems.filter((q) => q.status === 'Waiting').length * 3);
+      const emergencyState = loadEmergencyState();
+      pulseDelay.textContent = `${Math.min(45, waitingLoad)} mins`;
+      pulseQueuePeak.textContent = waitingLoad > 18 ? '10:30 AM' : waitingLoad > 12 ? '11:00 AM' : '1:30 PM';
+      pulseHealth.textContent = emergencyState.active ? `Emergency • ${emergencyState.level || 'Active'}` : waitingLoad > 22 ? 'Busy' : 'Stable';
+      pulseHealth.className = `text-xl font-bold ${emergencyState.active ? 'text-red-600' : waitingLoad > 22 ? 'text-brand-orange' : 'text-brand-green'}`;
+    }
+
+    function estimateAmount(item) {
+      return item.type === 'document_request' ? 120 : 250;
+    }
+
+    function assignWindowNumber() {
+      return `Window ${Math.floor(Math.random() * 5) + 1}`;
+    }
+
+    function openPaymentModal(request) {
+      pendingPaymentRequest = request;
+      paymentModalRef.textContent = `Ref: ${request.id} • Ticket: ${request.ticketId} • Amount: ₱${estimateAmount(request)}`;
+      paymentInstruction.textContent = 'If you choose cash, you will pay at City Hall Cashier. If online, the system assigns your designated payment window.';
+      payerName.value = request.name || '';
+      paymentRefNo.value = `${request.id}-${Date.now().toString().slice(-4)}`;
+      onlineOptions.classList.add('hidden');
+      paymentModal.classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+      paymentModal.classList.add('hidden');
+      pendingPaymentRequest = null;
+      paymentModalForm.reset();
+      onlineOptions.classList.add('hidden');
+    }
+
+    function persistRequestWithPayment(request, method) {
+      const shared = loadSharedBookings();
+      request.payerName = payerName.value;
+      request.paymentReference = paymentRefNo.value;
+      if (method === 'cash') {
+        request.paymentMethod = 'Cash';
+        request.paymentStatus = 'Cash - Pay at City Hall';
+        request.windowNumber = 'City Hall Cashier';
+        request.paymentInstruction = 'Please proceed to City Hall Cashier and pay in cash.';
+      } else {
+        const provider = onlineProvider.value;
+        const windowNo = assignWindowNumber();
+        request.paymentMethod = `Online (${provider})`;
+        request.paymentStatus = 'Paid Online';
+        request.windowNumber = windowNo;
+        request.paymentInstruction = `Online payment recorded. Proceed to ${windowNo} for validation.`;
+      }
+      request.status = 'Payment Submitted • Pending Admin Confirmation';
+      shared.push(request);
+      saveSharedBookings(shared);
+      pushNotification('admin', 'New Paid Request', `A request is ready for admin review (${request.id}).`, request.id);
+    }
+
+    function renderFollowups() {
+      const items = loadFollowups();
+      followupList.innerHTML = items.length
+        ? items.slice().reverse().map((item) => `<li class="p-3 rounded-lg border border-slate-200 bg-slate-50"><strong>${item.ticketId}</strong> • ${item.category}<br><span class="text-slate-600">${item.message}</span><br><span class="text-xs text-brand-blue">${item.status} • ${item.updatedAt || item.createdAt}</span></li>`).join('')
+        : '<li class="text-slate-500">No follow-up tickets yet.</li>';
+    }
+
+    function loadMayorAnnouncements() {
+      const fallback = [
+        { title: 'Mayor\'s Weekly Update', content: 'Road rehabilitation phase 1 starts Monday in key barangays.' },
+        { title: 'Public Service Notice', content: 'Extended city hall hours this Friday for permit and payment assistance.' }
+      ];
+      return JSON.parse(localStorage.getItem(storage.mayorAnnouncementsKey) || JSON.stringify(fallback));
+    }
+
+    function renderMayorAnnouncements() {
+      const items = loadMayorAnnouncements();
+      mayorAnnouncementList.innerHTML = items
+        .slice()
+        .reverse()
+        .map((item) => `<li class="p-3 rounded-lg border border-slate-200 bg-slate-50"><strong>${item.title}</strong><p class="text-slate-600 mt-1">${item.content}</p></li>`)
+        .join('');
+    }
+
+    function loadAnnouncements() {
+      const fallback = [
+        { title: 'Holiday Notice', content: 'City Hall operations are adjusted for the holiday week.', scope: 'all', barangay: 'all' },
+        { title: 'Maintenance Downtime', content: 'Permit system maintenance on Friday, 8:00 PM.', scope: 'all', barangay: 'all' },
+        { title: 'Pacita Advisory', content: 'Pacita satellite desk extends service hours this week.', scope: 'barangay', barangay: 'Barangay Pacita 1' },
+        { title: 'New Services', content: 'Parking registration is now available online.', scope: 'all', barangay: 'all' }
+      ];
+      return JSON.parse(localStorage.getItem(storage.announcementsKey) || JSON.stringify(fallback));
+    }
+
+    function renderAnnouncements() {
+      const items = loadAnnouncements();
+      const selected = barangayFilter.value;
+      const filtered = items.filter((item) => {
+        const tag = item.barangay || 'all';
+        return selected === 'all' || tag === 'all' || tag === selected;
+      });
+
+      announcementList.innerHTML = filtered
+        .slice()
+        .reverse()
+        .map((item) => `<li class="p-3 rounded-lg border border-slate-200 bg-slate-50"><strong>${item.title}</strong>${item.barangay && item.barangay !== 'all' ? `<span class="ml-2 text-[11px] rounded-full bg-blue-100 text-brand-blue px-2 py-0.5">${item.barangay}</span>` : ''}<p class="text-slate-600 mt-1">${item.content}</p></li>`)
+        .join('');
+      statAnnouncements.textContent = String(filtered.length);
+    }
+
+    function renderQueue() {
+      queueBody.innerHTML = queueItems
+        .map((item, idx) => {
+          return `<tr class="bg-white"><td class="p-3">${item.id}</td><td class="p-3">${item.name}</td><td class="p-3">${item.service}</td><td class="p-3">${item.status}</td><td class="p-3"><span class="text-xs rounded-md bg-slate-100 px-2 py-1 text-slate-600">Admin-Controlled</span></td></tr>`;
+        })
+        .join('');
+
+      const checkedInCount = queueItems.filter((item) => item.status === 'Checked-In').length;
+      statCheckins.textContent = String(checkedInCount);
+    }
+
+    function renderPermits() {
+      const query = permitSearch.value.toLowerCase().trim();
+      const status = permitFilter.value;
+
+      const filtered = permits.filter((permit) => {
+        const matchesQuery = permit.applicant.toLowerCase().includes(query) || permit.id.toLowerCase().includes(query);
+        const matchesStatus = status === 'all' || permit.status === status;
+        return matchesQuery && matchesStatus;
+      });
+
+      permitBody.innerHTML = filtered
+        .map((permit) => `<tr class="bg-white"><td class="p-3">${permit.id}</td><td class="p-3">${permit.applicant}</td><td class="p-3">${permit.permit}</td><td class="p-3">${permit.submitted}</td><td class="p-3">${permit.status}</td></tr>`)
+        .join('');
+
+      statPermits.textContent = String(filtered.length);
+    }
+
+    mobileMenuBtn.addEventListener('click', () => {
+      const isHidden = mobileMenu.classList.contains('hidden');
+      mobileMenu.classList.toggle('hidden');
+      mobileMenuBtn.setAttribute('aria-expanded', String(isHidden));
+    });
+
+    mobileMenu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    quickJumpBtn.addEventListener('click', () => {
+      const targetId = quickJumpSelect.value;
+      if (!targetId) return;
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      saveLastSection(targetId);
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    quickTopBtn.addEventListener('click', () => {
+      saveLastSection('home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    const mobileMenuGroups = [...mobileMenu.querySelectorAll('.mobile-menu-group')];
+    mobileMenuGroups.forEach((group) => {
+      group.addEventListener('toggle', () => {
+        if (!group.open) return;
+        mobileMenuGroups.forEach((other) => {
+          if (other !== group) other.open = false;
+        });
+      });
+    });
+
+    ctaBtn.addEventListener('click', () => {
+      showToast('Success! Citizen journey started. Scroll to explore modules.');
+      saveLastSection('dashboard');
+      location.hash = '#dashboard';
+    });
+
+    themeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('bg-slate-900');
+      document.body.classList.toggle('text-slate-100');
+      showToast('Theme toggled.');
+    });
+
+    serviceCards.forEach((card) => {
+      card.addEventListener('click', () => {
+        serviceCards.forEach((c) => c.classList.remove('active'));
+        card.classList.add('active');
+        const target = document.getElementById(card.dataset.serviceTarget);
+        if (!target) return;
+        saveLastSection(target.id);
+        target.classList.add('section-pulse');
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => target.classList.remove('section-pulse'), 1200);
+      });
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('smartCitySession');
+      showToast('Logged out.');
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 500);
+    });
+
+    appointmentForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!canSubmit('appointment-submit')) {
+        showToast('Please wait a moment before submitting another appointment.');
+        return;
+      }
+
+      const apptDate = document.getElementById('apptDate').value;
+      const apptTime = composeMeridiemTime(apptHour.value, apptMinute.value, apptMeridiem.value);
+      if (!apptTime) {
+        showToast('Please select appointment time using HH, MM (00/30), and AM/PM.');
+        return;
+      }
+      if (!navigator.onLine) {
+        saveDraft(storage.appointmentDraftKey, readAppointmentDraftPayload(), apptDraftStatus);
+        showToast('You are offline. Appointment draft saved automatically.');
+        return;
+      }
+      if (!hasSlotCapacity(apptDate, apptTime, 'f2f_payment')) {
+        renderRebookingSuggestions('appt', apptDate, apptTime, 'f2f_payment');
+        showToast('Selected appointment slot is full. Suggested nearby slots are shown below.');
+        return;
+      }
+
+      const bookingItem = {
+        id: generateBookingId('PAY'),
+        ticketId: generateTicketId(),
+        name: document.getElementById('apptName').value,
+        date: apptDate,
+        time: apptTime,
+        service: document.getElementById('apptService').value,
+        queueToken: generateQueueToken(),
+        etaMinutes: estimateEtaMinutes('f2f_payment'),
+        type: 'f2f_payment',
+        status: 'Awaiting Payment',
+        paymentStatus: 'Unpaid',
+        source: 'citizen',
+        priorityMeta: buildPriorityMeta(apptCitizenType.value, apptUrgentFlag.checked, apptPriorityNote.value),
+        createdAt: new Date().toISOString()
+      };
+
+      clearRebookingSuggestions('appt');
+      clearDraft(storage.appointmentDraftKey, apptDraftStatus);
+      appointmentForm.reset();
+      openPaymentModal(bookingItem);
+    });
+
+    documentRequestForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!canSubmit('document-submit')) {
+        showToast('Please wait before submitting another document request.');
+        return;
+      }
+
+      const docPickupDate = document.getElementById('docDate').value;
+      const docPickupTime = composeMeridiemTime(docHour.value, docMinute.value, docMeridiem.value);
+      if (!docPickupTime) {
+        showToast('Please select pickup time using HH, MM (00/30), and AM/PM.');
+        return;
+      }
+      if (!navigator.onLine) {
+        saveDraft(storage.documentDraftKey, readDocumentDraftPayload(), docDraftStatus);
+        showToast('You are offline. Document request draft saved automatically.');
+        return;
+      }
+      if (!hasSlotCapacity(docPickupDate, docPickupTime, 'document_request')) {
+        renderRebookingSuggestions('doc', docPickupDate, docPickupTime, 'document_request');
+        showToast('Pickup slot is full. Suggested alternatives are ready below.');
+        return;
+      }
+
+      const item = {
+        id: generateBookingId('DOC'),
+        ticketId: generateTicketId(),
+        name: document.getElementById('docName').value,
+        date: docPickupDate,
+        time: docPickupTime,
+        service: 'City Hall Document Pickup',
+        documentType: document.getElementById('docType').value,
+        purpose: document.getElementById('docPurpose').value,
+        email: document.getElementById('docEmail').value,
+        queueToken: generateQueueToken(),
+        etaMinutes: estimateEtaMinutes('document_request'),
+        type: 'document_request',
+        status: 'Awaiting Payment',
+        paymentStatus: 'Unpaid',
+        source: 'citizen',
+        priorityMeta: buildPriorityMeta(docCitizenType.value, docUrgentFlag.checked, docPriorityNote.value),
+        createdAt: new Date().toISOString()
+      };
+
+      clearRebookingSuggestions('doc');
+      clearDraft(storage.documentDraftKey, docDraftStatus);
+      documentRequestForm.reset();
+      openPaymentModal(item);
+    });
+
+    appointmentForm.addEventListener('input', () => {
+      saveDraft(storage.appointmentDraftKey, readAppointmentDraftPayload(), apptDraftStatus);
+    });
+
+    documentRequestForm.addEventListener('input', () => {
+      saveDraft(storage.documentDraftKey, readDocumentDraftPayload(), docDraftStatus);
+    });
+
+    saveApptDraftBtn.addEventListener('click', () => {
+      saveDraft(storage.appointmentDraftKey, readAppointmentDraftPayload(), apptDraftStatus);
+      showToast('Appointment draft saved.');
+    });
+
+    clearApptDraftBtn.addEventListener('click', () => {
+      clearDraft(storage.appointmentDraftKey, apptDraftStatus);
+      clearRebookingSuggestions('appt');
+      showToast('Appointment draft cleared.');
+    });
+
+    saveDocDraftBtn.addEventListener('click', () => {
+      saveDraft(storage.documentDraftKey, readDocumentDraftPayload(), docDraftStatus);
+      showToast('Document draft saved.');
+    });
+
+    clearDocDraftBtn.addEventListener('click', () => {
+      clearDraft(storage.documentDraftKey, docDraftStatus);
+      clearRebookingSuggestions('doc');
+      showToast('Document draft cleared.');
+    });
+
+    apptRebookingSuggestions.addEventListener('click', (event) => {
+      const button = event.target.closest('.apply-rebook');
+      if (!button) return;
+      const slot = parseMeridiemTime(button.dataset.rebookTime || '');
+      if (!slot) return;
+      document.getElementById('apptDate').value = button.dataset.rebookDate || '';
+      apptHour.value = slot.hour;
+      apptMinute.value = slot.minute;
+      apptMeridiem.value = slot.meridiem;
+      saveDraft(storage.appointmentDraftKey, readAppointmentDraftPayload(), apptDraftStatus);
+      clearRebookingSuggestions('appt');
+      showToast('Alternative appointment slot applied.');
+    });
+
+    docRebookingSuggestions.addEventListener('click', (event) => {
+      const button = event.target.closest('.apply-rebook');
+      if (!button) return;
+      const slot = parseMeridiemTime(button.dataset.rebookTime || '');
+      if (!slot) return;
+      document.getElementById('docDate').value = button.dataset.rebookDate || '';
+      docHour.value = slot.hour;
+      docMinute.value = slot.minute;
+      docMeridiem.value = slot.meridiem;
+      saveDraft(storage.documentDraftKey, readDocumentDraftPayload(), docDraftStatus);
+      clearRebookingSuggestions('doc');
+      showToast('Alternative pickup slot applied.');
+    });
+
+    paymentModalForm.addEventListener('change', (event) => {
+      if (event.target.name !== 'paymentMethod') return;
+      const method = event.target.value;
+      if (method === 'online') {
+        onlineOptions.classList.remove('hidden');
+        paymentInstruction.textContent = 'Online selected: your payment will be marked as paid and you must proceed to the designated city hall window for validation.';
+      } else {
+        onlineOptions.classList.add('hidden');
+        paymentInstruction.textContent = 'Cash selected: please pay at City Hall Cashier on your selected schedule.';
+      }
+    });
+
+    paymentModalForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!pendingPaymentRequest) return;
+      if (!payerName.value.trim() || !paymentRefNo.value.trim()) {
+        showToast('Please provide payer name and payment reference.');
+        return;
+      }
+      const method = paymentModalForm.querySelector('input[name="paymentMethod"]:checked')?.value || 'cash';
+      persistRequestWithPayment(pendingPaymentRequest, method);
+      renderBookings();
+      renderDocumentRequests();
+      renderUnifiedTimeline();
+      showToast(`Payment saved. Ref ${pendingPaymentRequest.id} synced to admin with Ticket ${pendingPaymentRequest.ticketId}.`);
+      closePaymentModal();
+    });
+
+    closePaymentModalBtn.addEventListener('click', closePaymentModal);
+    paymentModal.addEventListener('click', (event) => {
+      if (event.target === paymentModal) closePaymentModal();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (!paymentModal.classList.contains('hidden')) closePaymentModal();
+      if (!bookingsArchiveModal.classList.contains('hidden')) bookingsArchiveModal.classList.add('hidden');
+      if (!docsArchiveModal.classList.contains('hidden')) docsArchiveModal.classList.add('hidden');
+    });
+
+    followupForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!canSubmit('followup-submit', 60000)) {
+        showToast('Please wait one minute before creating another follow-up ticket.');
+        return;
+      }
+
+      const items = loadFollowups();
+      const followupMessageValue = document.getElementById('followupMessage').value;
+      if (isDuplicateByText(items, (x) => x.message || '', followupMessageValue)) {
+        showToast('Duplicate follow-up detected. Please wait for an admin response.');
+        return;
+      }
+
+      items.push({
+        ticketId: generateTicketId(),
+        referenceId: document.getElementById('followupRef').value || 'N/A',
+        category: document.getElementById('followupCategory').value,
+        message: followupMessageValue,
+        status: 'Submitted',
+        createdAt: new Date().toISOString()
+      });
+      saveFollowups(items);
+      pushNotification('admin', 'New Follow-up Ticket', `Citizen submitted follow-up ${items[items.length - 1].ticketId}.`, items[items.length - 1].ticketId);
+      renderFollowups();
+      renderUnifiedTimeline();
+      followupForm.reset();
+      showToast('Follow-up ticket created. You can track it any time.');
+    });
+
+    followupSearchBtn.addEventListener('click', () => {
+      const query = followupSearchInput.value.trim().toUpperCase();
+      const items = loadFollowups();
+      const match = items.find((item) => item.ticketId.toUpperCase() === query);
+      if (match) {
+        followupSearchResult.innerHTML = `<strong>${match.ticketId}</strong> • ${match.status}<br><span class="text-slate-500">${match.category} • Ref: ${match.referenceId}</span>`;
+        return;
+      }
+
+      const bookingMatch = loadSharedBookings().find((item) => (item.ticketId || '').toUpperCase() === query);
+      followupSearchResult.innerHTML = bookingMatch
+        ? `<strong>${bookingMatch.ticketId}</strong> • ${bookingMatch.status}<br><span class="text-slate-500">Ref: ${bookingMatch.id} • ${bookingMatch.paymentStatus}</span>`
+        : 'Ticket not found. Check your ID and try again.';
+    });
+
+    startLiveChatBtn.addEventListener('click', () => {
+      showToast('Customer service live chat connected (dummy). An agent will assist shortly.');
+    });
+
+    customerServiceForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const items = loadFollowups();
+      const ticketId = generateTicketId();
+      items.push({
+        ticketId,
+        referenceId: 'CS-DESK',
+        category: 'Customer Service',
+        message: `${document.getElementById('csConcern').value} (Contact: ${document.getElementById('csContact').value})`,
+        status: 'Submitted',
+        createdAt: new Date().toISOString()
+      });
+      saveFollowups(items);
+      pushNotification('admin', 'Customer Service Ticket', `New customer service ticket ${ticketId} created.`, ticketId);
+      renderFollowups();
+      renderUnifiedTimeline();
+      customerServiceForm.reset();
+      showToast(`Customer service ticket created: ${ticketId}`);
+    });
+
+    function handleCitizenCancel(id) {
+      const items = loadSharedBookings();
+      const target = items.find((item) => item.id === id);
+      if (!target) return;
+
+      if (isRequestInactive(target)) {
+        showToast(`Request ${target.id} is already inactive.`);
+        return;
+      }
+
+      const paid = (target.paymentStatus || '').toLowerCase().includes('paid') || (target.paymentStatus || '').toLowerCase().includes('cash');
+      if (paid) {
+        target.status = 'Cancellation / Refund Requested';
+        target.refundStatus = 'Pending Admin Review';
+      } else {
+        target.status = 'Cancelled by Citizen';
+        target.paymentStatus = 'Cancelled';
+      }
+      saveSharedBookings(items);
+      pushNotification('admin', 'Cancellation Request', `Citizen requested cancellation/refund for ${target.id}.`, target.id);
+      renderBookings();
+      renderDocumentRequests();
+      renderUnifiedTimeline();
+      showToast(`Request ${target.id} updated: ${target.status}`);
+    }
+
+    appointmentList.addEventListener('click', (event) => {
+      const button = event.target.closest('.cancel-request');
+      if (!button) return;
+      handleCitizenCancel(button.dataset.cancelId);
+    });
+
+    documentRequestList.addEventListener('click', (event) => {
+      const button = event.target.closest('.cancel-request');
+      if (!button) return;
+      handleCitizenCancel(button.dataset.cancelId);
+    });
+
+    viewAllBookingsBtn.addEventListener('click', () => bookingsArchiveModal.classList.remove('hidden'));
+    viewAllDocsBtn.addEventListener('click', () => docsArchiveModal.classList.remove('hidden'));
+    closeBookingsArchiveBtn.addEventListener('click', () => bookingsArchiveModal.classList.add('hidden'));
+    closeDocsArchiveBtn.addEventListener('click', () => docsArchiveModal.classList.add('hidden'));
+    bookingsArchiveModal.addEventListener('click', (event) => { if (event.target === bookingsArchiveModal) bookingsArchiveModal.classList.add('hidden'); });
+    docsArchiveModal.addEventListener('click', (event) => { if (event.target === docsArchiveModal) docsArchiveModal.classList.add('hidden'); });
+
+    bookingFilterButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        bookingsArchiveFilter = btn.dataset.bookingFilter;
+        bookingFilterButtons.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderBookings();
+      });
+    });
+
+    docFilterButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        docsArchiveFilter = btn.dataset.docFilter;
+        docFilterButtons.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderDocumentRequests();
+      });
+    });
+
+    markNotificationsReadBtn.addEventListener('click', () => {
+      const items = loadNotifications().map((n) => (n.target === 'citizen' || n.target === 'all') ? { ...n, read: true } : n);
+      saveNotifications(items);
+      renderNotifications();
+      showToast('Citizen notifications marked as read.');
+    });
+
+    refreshCityPulseBtn.addEventListener('click', () => {
+      renderCityPulse();
+      showToast('City Pulse forecast refreshed.');
+    });
+
+    profileForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      saveProfile({
+        name: profileName.value,
+        email: profileEmail.value,
+        phone: profilePhone.value,
+        barangay: profileBarangay.value
+      });
+      renderProfile();
+      renderAnnouncements();
+      showToast('Profile saved and auto-fill enabled.');
+    });
+
+    incidentForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!canSubmit('incident-submit', 60000)) {
+        showToast('Please wait before submitting another incident.');
+        return;
+      }
+
+      const items = loadIncidents();
+      if (isDuplicateByText(items, (x) => `${x.category} ${x.location} ${x.details}`, `${incidentCategory.value} ${incidentLocation.value} ${incidentDetails.value}`)) {
+        showToast('Similar incident already submitted recently.');
+        return;
+      }
+
+      const ticketId = `INC-${Date.now().toString().slice(-6)}`;
+      items.push({
+        ticketId,
+        category: incidentCategory.value,
+        location: incidentLocation.value,
+        details: incidentDetails.value,
+        status: 'Submitted',
+        createdAt: new Date().toISOString()
+      });
+      saveIncidents(items);
+      pushNotification('admin', 'New Incident Report', `Incident ${ticketId} reported at ${incidentLocation.value}.`, ticketId);
+      renderIncidents();
+      renderUnifiedTimeline();
+      incidentForm.reset();
+      showToast(`Incident ticket submitted: ${ticketId}`);
+    });
+
+    suggestionForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!canSubmit('suggestion-submit', 90000)) {
+        showToast('Please wait before submitting another suggestion.');
+        return;
+      }
+      const items = loadSuggestions();
+      if (isDuplicateByText(items, (x) => x.message || '', suggestionInput.value)) {
+        showToast('This looks like a duplicate suggestion.');
+        return;
+      }
+
+      items.push({
+        id: `SGT-${Date.now().toString().slice(-6)}`,
+        category: suggestionCategory.value,
+        message: suggestionInput.value.trim(),
+        status: 'Under Review',
+        upvotes: 0,
+        downvotes: 0,
+        adminResponse: '',
+        createdAt: new Date().toISOString()
+      });
+      saveSuggestions(items);
+      pushNotification('admin', 'New Citizen Suggestion', `New suggestion in ${suggestionCategory.value}.`, 'SUGGESTION');
+      renderSuggestions();
+      renderUnifiedTimeline();
+      suggestionForm.reset();
+      showToast('Thank you! Your suggestion was submitted.');
+    });
+
+    suggestionList.addEventListener('click', (event) => {
+      const button = event.target.closest('.suggestion-vote');
+      if (!button) return;
+      const suggestions = loadSuggestions();
+      const target = suggestions.find((item) => item.id === button.dataset.voteId);
+      if (!target) return;
+      if (button.dataset.vote === 'up') target.upvotes = (target.upvotes || 0) + 1;
+      if (button.dataset.vote === 'down') target.downvotes = (target.downvotes || 0) + 1;
+      saveSuggestions(suggestions);
+      renderSuggestions();
+    });
+
+    emergencyHelpForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const emergencyState = loadEmergencyState();
+      if (!emergencyState.active) {
+        showToast('Emergency mode is not active right now. For life-threatening cases, call hotline immediately.');
+        return;
+      }
+      if (!canSubmit('emergency-help-submit', 45000)) {
+        showToast('Please wait a bit before submitting another emergency ticket.');
+        return;
+      }
+
+      const items = loadEmergencyHelpTickets();
+      const ticket = {
+        id: `EMR-${Date.now().toString().slice(-6)}`,
+        type: emergencyNeedType.value,
+        location: emergencyNeedLocation.value,
+        details: emergencyNeedDetails.value,
+        status: 'Submitted',
+        priority: 'Emergency',
+        createdAt: new Date().toISOString()
+      };
+      items.push(ticket);
+      saveEmergencyHelpTickets(items);
+      renderEmergencyHelpList();
+      renderUnifiedTimeline();
+      pushNotification('admin', 'Emergency Help Ticket', `${ticket.id} • ${ticket.type} reported at ${ticket.location}.`, ticket.id);
+      emergencyHelpForm.reset();
+      showToast(`Emergency ticket submitted: ${ticket.id}`);
+    });
+
+    refreshTimelineBtn.addEventListener('click', () => {
+      renderUnifiedTimeline();
+      showToast('Timeline refreshed.');
+    });
+
+    languageSelect.addEventListener('change', () => {
+      setLanguage(languageSelect.value);
+      applyLanguage();
+      showToast(languageSelect.value === 'fil' ? 'Nakalipat sa Filipino mode.' : 'Language switched to English.');
+    });
+
+    voiceModeBtn.addEventListener('click', () => {
+      voiceGuidanceEnabled = !voiceGuidanceEnabled;
+      voiceModeBtn.textContent = voiceGuidanceEnabled ? 'Disable Voice Guidance' : 'Enable Voice Guidance';
+      showToast(voiceGuidanceEnabled ? 'Voice guidance enabled.' : 'Voice guidance disabled.');
+      if (voiceGuidanceEnabled && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance('Voice guidance enabled for citizen portal.'));
+      }
+    });
+
+    smsOptIn.addEventListener('change', () => {
+      showToast(smsOptIn.checked ? 'SMS-ready notifications enabled.' : 'SMS-ready notifications disabled.');
+    });
+
+    assistantSendBtn.addEventListener('click', sendAssistantMessage);
+    assistantInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') sendAssistantMessage();
+    });
+
+    barangayFilter.addEventListener('change', renderAnnouncements);
+
+    appointmentList.addEventListener('click', (event) => {
+      const receiptButton = event.target.closest('.download-receipt');
+      if (!receiptButton) return;
+      downloadReceiptById(receiptButton.dataset.receiptId);
+    });
+
+    documentRequestList.addEventListener('click', (event) => {
+      const receiptButton = event.target.closest('.download-receipt');
+      if (!receiptButton) return;
+      downloadReceiptById(receiptButton.dataset.receiptId);
+    });
+
+    feedbackForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!feedbackRef.value) {
+        showToast('Please select a completed request first.');
+        return;
+      }
+      const items = loadFeedbacks();
+      items.push({
+        id: `FDB-${Date.now().toString().slice(-6)}`,
+        reference: feedbackRef.value,
+        rating: feedbackRating.value,
+        comment: feedbackComment.value,
+        createdAt: new Date().toISOString()
+      });
+      saveFeedbacks(items);
+      pushNotification('admin', 'New Citizen Feedback', `Feedback received for ${feedbackRef.value}.`, feedbackRef.value);
+      renderFeedbacks();
+      feedbackForm.reset();
+      showToast('Feedback submitted. Thank you for helping improve the city!');
+    });
+
+    permitSearch.addEventListener('input', renderPermits);
+    permitFilter.addEventListener('change', renderPermits);
+
+    ensureTicketIds();
+    languageSelect.value = getLanguage();
+    applyLanguage();
+    renderProfile();
+    renderBookings();
+    renderDocumentRequests();
+    renderFollowups();
+    renderAnnouncements();
+    renderMayorAnnouncements();
+    renderIncidents();
+    renderQueue();
+    renderPermits();
+    renderNotifications();
+    renderSmsLogs();
+    renderFeedbacks();
+    renderSuggestions();
+    renderUnifiedTimeline();
+    renderCityPulse();
+    renderEmergencyPanel();
+    renderEmergencyHelpList();
+    restoreDrafts();
+    updateDraftStatusByConnectivity();
+    window.addEventListener('online', updateDraftStatusByConnectivity);
+    window.addEventListener('offline', updateDraftStatusByConnectivity);
+    decorateCitizenSectionTitles();
+    wireSectionTracking();
+    restoreLastSection();
+    assistantChat.innerHTML = '<div class="rounded-lg bg-blue-50 border border-blue-200 p-2 text-sm"><strong>Assistant:</strong> Hi! I can help with bookings, payments, incidents, and follow-up tracking.</div>';
+    saveBookings(loadBookings());
+    renderSession();
+  </script>
+</body>
+</html>
