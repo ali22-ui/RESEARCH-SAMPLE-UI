@@ -527,6 +527,14 @@
             <h3 class="font-semibold">Upcoming Bookings</h3>
             <button id="viewAllBookingsBtn" class="text-xs rounded-md bg-slate-100 px-3 py-1.5 hover:bg-slate-200">View All</button>
           </div>
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 mb-3">
+            <p class="text-xs text-slate-600 mb-2"><strong>Cross-device sync:</strong> If you booked from another phone/browser, generate a sync code and paste it in Admin panel.</p>
+            <div class="flex flex-wrap gap-2 mb-2">
+              <button id="generateSyncCodeBtn" type="button" class="rounded-md bg-brand-blue text-white px-3 py-1.5 text-xs font-semibold hover:bg-blue-800">Generate Sync Code</button>
+              <button id="copySyncCodeBtn" type="button" class="rounded-md bg-slate-200 text-slate-700 px-3 py-1.5 text-xs font-semibold hover:bg-slate-300">Copy Code</button>
+            </div>
+            <textarea id="citizenSyncCode" rows="3" readonly class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs" placeholder="Tap Generate Sync Code"></textarea>
+          </div>
           <ul id="appointmentList" class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 text-sm"></ul>
         </div>
       </article>
@@ -1153,6 +1161,9 @@
     const docRebookingSuggestions = document.getElementById('docRebookingSuggestions');
     const appointmentsDraftBadge = document.getElementById('appointmentsDraftBadge');
     const documentsDraftBadge = document.getElementById('documentsDraftBadge');
+    const generateSyncCodeBtn = document.getElementById('generateSyncCodeBtn');
+    const copySyncCodeBtn = document.getElementById('copySyncCodeBtn');
+    const citizenSyncCode = document.getElementById('citizenSyncCode');
 
     const statAppointments = document.getElementById('statAppointments');
     const statAnnouncements = document.getElementById('statAnnouncements');
@@ -1478,6 +1489,21 @@
 
     function loadDraft(key) {
       return JSON.parse(localStorage.getItem(key) || 'null');
+    }
+
+    function encodeSyncPayload(payload) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    }
+
+    function buildCitizenSyncPayload() {
+      const bookings = loadSharedBookings().filter((item) => item.source === 'citizen');
+      return {
+        type: 'smartCityCitizenSync',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        bookingCount: bookings.length,
+        bookings
+      };
     }
 
     function clearDraft(key, statusEl) {
@@ -2334,6 +2360,26 @@
     saveDocDraftBtn.addEventListener('click', () => {
       saveDraft(storage.documentDraftKey, readDocumentDraftPayload(), docDraftStatus);
       showToast('Document draft saved.');
+    });
+
+    generateSyncCodeBtn.addEventListener('click', () => {
+      const payload = buildCitizenSyncPayload();
+      citizenSyncCode.value = encodeSyncPayload(payload);
+      showToast(`Sync code generated for ${payload.bookingCount} booking(s).`);
+    });
+
+    copySyncCodeBtn.addEventListener('click', async () => {
+      if (!citizenSyncCode.value.trim()) {
+        showToast('Generate a sync code first.');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(citizenSyncCode.value.trim());
+        showToast('Sync code copied. Paste this in Admin panel import box.');
+      } catch {
+        citizenSyncCode.select();
+        showToast('Clipboard blocked. Please copy the sync code manually.');
+      }
     });
 
     clearDocDraftBtn.addEventListener('click', () => {
